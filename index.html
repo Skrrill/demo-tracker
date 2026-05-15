@@ -973,7 +973,8 @@ function openDetail(id) {
         (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
         '<button class="action-btn" data-act="email">📧 Email Curriculum</button>' +
         (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
-        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📅 Add to Calendar</button>' : '') +
+        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="gcal">📅 Google Calendar</button>' : '') +
+        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📥 Download .ics (with alarms)</button>' : '') +
       '</div>' +
     '</div>' +
     '<div class="modal-actions">' +
@@ -996,6 +997,7 @@ function openDetail(id) {
       else if (act === 'email') actionEmail(d.id);
       else if (act === 'sms') actionCopySMS(d.id);
       else if (act === 'cal') actionAddToCalendar(d.id);
+      else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
     });
   });
 }
@@ -1241,6 +1243,45 @@ function actionCopySMS(demoId) {
   }).catch(() => {
     prompt('Copy this:', text);
   });
+}
+
+function actionAddToGoogleCalendar(demoId) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  if (!d.demoDate || !d.demoTime) {
+    alert('Please set both date and time first.');
+    return;
+  }
+
+  const [y, m, day] = d.demoDate.split('-').map(Number);
+  const [hh, mm] = d.demoTime.split(':').map(Number);
+  const start = new Date(y, m - 1, day, hh, mm);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+  const fmtUTC = dt => {
+    const pad = n => String(n).padStart(2, '0');
+    return dt.getUTCFullYear() + pad(dt.getUTCMonth() + 1) + pad(dt.getUTCDate()) + 'T' +
+      pad(dt.getUTCHours()) + pad(dt.getUTCMinutes()) + '00Z';
+  };
+
+  const title = `${d.course || 'Demo'} Trial: ${d.childName} (${d.parentName})`;
+  const details = [
+    `Parent: ${d.parentName}`,
+    `Child: ${d.childName}${d.grade ? ' (Grade ' + d.grade + ')' : ''}`,
+    `Phone: ${d.phone || 'N/A'}`,
+    d.classLink ? `Join: ${d.classLink}` : '',
+    d.trigger ? `\nWhy now: ${d.trigger}` : '',
+    d.dreamProject ? `\nDream project: ${d.dreamProject}` : '',
+    d.parentVision ? `\nVision: ${d.parentVision}` : ''
+  ].filter(Boolean).join('\n');
+
+  const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    '&text=' + encodeURIComponent(title) +
+    '&dates=' + fmtUTC(start) + '/' + fmtUTC(end) +
+    '&details=' + encodeURIComponent(details) +
+    (d.classLink ? '&location=' + encodeURIComponent(d.classLink) : '');
+
+  window.open(url, '_blank');
 }
 
 function actionAddToCalendar(demoId) {
