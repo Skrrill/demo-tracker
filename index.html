@@ -931,17 +931,25 @@ async function initAuth() {
   const loadingScreen = document.getElementById('loading-screen');
   const signinScreen = document.getElementById('signin-screen');
   const mainApp = document.getElementById('main-app');
+  const errEl = document.getElementById('signin-error');
 
-  // Handle redirect result (for mobile)
+  document.getElementById('loading-text').textContent = 'Checking sign-in status...';
+
+  // Handle redirect result first (mobile flow)
   try {
-    await fb.getRedirectResult(fb.auth);
+    const result = await fb.getRedirectResult(fb.auth);
+    if (result && result.user) {
+      console.log('Redirect sign-in successful:', result.user.email);
+    }
   } catch (e) {
     console.error('Redirect error:', e);
-    document.getElementById('signin-error').textContent = e.message;
-    document.getElementById('signin-error').style.display = 'block';
+    errEl.textContent = 'Sign in error: ' + (e.code || e.message);
+    errEl.style.display = 'block';
   }
 
+  // Listen to auth state changes
   fb.onAuthStateChanged(fb.auth, user => {
+    console.log('Auth state changed:', user ? user.email : 'signed out');
     if (user) {
       userId = user.uid;
       loadingScreen.style.display = 'none';
@@ -949,6 +957,7 @@ async function initAuth() {
       mainApp.style.display = 'block';
       document.getElementById('user-email').textContent = user.email || user.displayName || '';
       setSyncStatus('syncing', 'loading');
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
       startListening();
     } else {
       loadingScreen.style.display = 'none';
@@ -962,22 +971,30 @@ async function initAuth() {
 async function handleSignIn() {
   const fb = window.__firebase;
   const provider = new fb.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   const errEl = document.getElementById('signin-error');
   errEl.style.display = 'none';
 
-  // Detect mobile: use redirect; desktop: use popup
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
+  // Always try popup first; if it fails (mobile blocks it), fall back to redirect
   try {
-    if (isMobile) {
-      await fb.signInWithRedirect(fb.auth, provider);
+    await fb.signInWithPopup(fb.auth, provider);
+  } catch (popupErr) {
+    console.warn('Popup failed, trying redirect:', popupErr.code);
+    // Common popup errors on mobile: popup-blocked, popup-closed-by-user, operation-not-supported
+    if (popupErr.code === 'auth/popup-blocked' ||
+        popupErr.code === 'auth/popup-closed-by-user' ||
+        popupErr.code === 'auth/cancelled-popup-request' ||
+        popupErr.code === 'auth/operation-not-supported-in-this-environment') {
+      try {
+        await fb.signInWithRedirect(fb.auth, provider);
+      } catch (redirectErr) {
+        errEl.textContent = 'Sign in failed: ' + (redirectErr.code || redirectErr.message);
+        errEl.style.display = 'block';
+      }
     } else {
-      await fb.signInWithPopup(fb.auth, provider);
+      errEl.textContent = 'Sign in failed: ' + (popupErr.code || popupErr.message);
+      errEl.style.display = 'block';
     }
-  } catch (e) {
-    console.error('Sign in error:', e);
-    errEl.textContent = 'Sign in failed: ' + e.message;
-    errEl.style.display = 'block';
   }
 }
 
