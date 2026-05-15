@@ -584,6 +584,8 @@
       <code data-token="{course}">{course}</code>
       <code data-token="{class_link}">{class_link}</code>
       <code data-token="{grade}">{grade}</code>
+      <code data-token="{curriculum_name}">{curriculum_name}</code>
+      <code data-token="{curriculum_link}">{curriculum_link}</code>
     </div>
 
     <form id="templates-form">
@@ -935,7 +937,8 @@ function openDetail(id) {
     escapeHtml(d.parentName) + '</span></h2>' +
     '<div class="detail-section"><h3>Basics</h3><div class="detail-grid">' +
       detailItem('Status', d.status) + detailItem('Course', d.course) +
-      detailItem('Grade', d.grade) + detailItem('Age', d.age) +
+      detailItem('Grade', d.grade + (getCurriculumForGrade(d.grade, d.course) ? ' → ' + getCurriculumForGrade(d.grade, d.course).label : '')) +
+      detailItem('Age', d.age) +
       detailItem('Date', d.demoDate ? formatDate(d.demoDate) : '') +
       detailItem('Time', d.demoTime ? formatTime(d.demoTime) : '') +
       detailItem('Phone', d.phone) + detailItem('Timezone', d.timezone) +
@@ -971,7 +974,8 @@ function openDetail(id) {
       '<div class="action-grid">' +
         (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
         (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
-        '<button class="action-btn" data-act="email">📧 Email Curriculum</button>' +
+        '<button class="action-btn" data-act="pretty-email">✨ Pretty Email (Copy + Paste)</button>' +
+        '<button class="action-btn" data-act="email">📧 Quick Email (plain text)</button>' +
         (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
         (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="gcal">📅 Google Calendar</button>' : '') +
         (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📥 Download .ics (with alarms)</button>' : '') +
@@ -995,6 +999,7 @@ function openDetail(id) {
       if (act === 'wa24') actionWhatsApp(d.id, '24h');
       else if (act === 'wa30') actionWhatsApp(d.id, '30m');
       else if (act === 'email') actionEmail(d.id);
+      else if (act === 'pretty-email') actionPrettyEmail(d.id);
       else if (act === 'sms') actionCopySMS(d.id);
       else if (act === 'cal') actionAddToCalendar(d.id);
       else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
@@ -1112,22 +1117,83 @@ async function importData(event) {
 }
 
 // ============ TEMPLATES ============
+const CURRICULUM_PDFS = {
+  budding: {
+    label: 'Budding Champs',
+    fileId: '1GILjhPflhjqaCcaV2szd2Ydf7sF86xp1',
+    grades: 'Grade 1 & below'
+  },
+  little: {
+    label: 'Little Champs',
+    fileId: '1nr8OxSRAVx4U_jIdbcKAb92Fer8883Bs',
+    grades: 'Grade 2-3'
+  },
+  junior: {
+    label: 'Junior Champs',
+    fileId: '1zfREAOOOH3ANhF34f0L1aExTmi7fl-fF',
+    grades: 'Grade 4-6'
+  },
+  senior: {
+    label: 'Senior Champs',
+    fileId: '1LgHRSHxpAI9SIsCfJpXBUUbwZv7PA5zF',
+    grades: 'Grade 7-9'
+  }
+};
+
+function getCurriculumForGrade(grade, course) {
+  // Only Coding has curriculum PDFs wired up right now
+  if (course && course !== 'Coding') return null;
+
+  if (!grade) return null;
+  const match = String(grade).match(/\d+/);
+  if (!match) return null;
+  const g = parseInt(match[0]);
+  if (g <= 1) return CURRICULUM_PDFS.budding;
+  if (g <= 3) return CURRICULUM_PDFS.little;
+  if (g <= 6) return CURRICULUM_PDFS.junior;
+  if (g <= 9) return CURRICULUM_PDFS.senior;
+  return CURRICULUM_PDFS.senior;
+}
+
+function getDirectDownloadLink(fileId) {
+  // Google Drive direct-view link (parents can preview in browser)
+  return `https://drive.google.com/file/d/${fileId}/view`;
+}
+
 const DEFAULT_TEMPLATES = {
   wa24h: `Hi {parent_name},\n\nJust a quick reminder — {child_name}'s {course} trial class is tomorrow at {time}.\n\nLooking forward to it!\n\n- Rituraj`,
   wa30m: `Hi {parent_name}, just a quick reminder — {child_name}'s class starts in 30 minutes at {time}.\n\nJoin link: {class_link}\n\nSee you soon!`,
-  emailSubject: `{child_name}'s {course} curriculum & trial details`,
-  emailBody: `Hi {parent_name},\n\nAs discussed, attaching the {course} curriculum overview for {child_name} (Grade {grade}).\n\nDetails of the trial class:\n• Date: {date}\n• Time: {time}\n• Join link: {class_link}\n\nFeel free to reach out if you have any questions before the class.\n\nWarm regards,\nRituraj\nBrightCHAMPS`,
+  emailSubject: `Your trial class is confirmed — see you soon, {parent_name}!`,
+  emailBody: `Hi {parent_name},\n\nGreat news — {child_name}'s {course} trial class is confirmed. Here's everything you need:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  SESSION DETAILS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📅  Date:     {date}\n🕐  Time:     {time}\n👤  Student:  {child_name} (Grade {grade})\n📚  Course:   {course}\n\n🔗  Join here: {class_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  WHAT TO EXPECT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🎯  Hands-on live class with an expert\n👨‍👩‍👧  Your presence makes a real difference — sit in if you can\n💬  Personal 1:1 counselling right after the session\n🎁  Exclusive on-call scholarship for families who enroll today\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  BEFORE THE CLASS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✓  Laptop or PC ready\n✓  Stable internet connection\n✓  Join 5 minutes early to test audio/video\n✓  A quiet space where {child_name} can focus\n\n📘 {curriculum_name} Curriculum:\n{curriculum_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAny questions before we meet? Just reply to this email — I'm here.\n\nLooking forward to it.\n\nRituraj\nAcademic Counsellor, BrightCHAMPS\nbrightchamps.com\n\nSTEM Accredited · Harvard Collaboration · MIT/IIT/IIM Mentors\nLIVE 1:1 Smart Technology Classes · Grades 1–12`,
   sms: `Hi {parent_name}, reminder: {child_name}'s class is at {time} today. Join: {class_link} - Rituraj, BrightCHAMPS`,
   reminder30m: true,
   reminder24h: true
 };
 
-const TEMPLATE_KEY = 'demo-tracker-templates-v1';
+const TEMPLATE_KEY = 'demo-tracker-templates-v2';
 
 function loadTemplates() {
   try {
     const raw = localStorage.getItem(TEMPLATE_KEY);
-    if (!raw) return { ...DEFAULT_TEMPLATES };
+    if (!raw) {
+      // Migrate from v1 if exists, but use new defaults for email
+      const oldRaw = localStorage.getItem('demo-tracker-templates-v1');
+      if (oldRaw) {
+        try {
+          const old = JSON.parse(oldRaw);
+          // Keep their custom WhatsApp/SMS, but force-update email to new design
+          return {
+            ...DEFAULT_TEMPLATES,
+            wa24h: old.wa24h || DEFAULT_TEMPLATES.wa24h,
+            wa30m: old.wa30m || DEFAULT_TEMPLATES.wa30m,
+            sms: old.sms || DEFAULT_TEMPLATES.sms,
+            reminder30m: old.reminder30m,
+            reminder24h: old.reminder24h
+          };
+        } catch (e) {}
+      }
+      return { ...DEFAULT_TEMPLATES };
+    }
     return { ...DEFAULT_TEMPLATES, ...JSON.parse(raw) };
   } catch (e) {
     return { ...DEFAULT_TEMPLATES };
@@ -1146,6 +1212,7 @@ function saveTemplates(t) {
 
 function fillTemplate(template, demo) {
   if (!template) return '';
+  const curriculum = getCurriculumForGrade(demo.grade, demo.course);
   const tokens = {
     '{child_name}': demo.childName || '',
     '{parent_name}': demo.parentName || '',
@@ -1153,7 +1220,9 @@ function fillTemplate(template, demo) {
     '{time}': demo.demoTime ? formatTime(demo.demoTime) : '',
     '{course}': demo.course || '',
     '{class_link}': demo.classLink || '',
-    '{grade}': demo.grade || ''
+    '{grade}': demo.grade || '',
+    '{curriculum_name}': curriculum ? curriculum.label : 'BrightCHAMPS',
+    '{curriculum_link}': curriculum ? getDirectDownloadLink(curriculum.fileId) : ''
   };
   let result = template;
   Object.keys(tokens).forEach(k => {
@@ -1223,12 +1292,421 @@ function actionEmail(demoId) {
   const d = demos.find(x => x.id === demoId);
   if (!d) return;
   const t = loadTemplates();
-  const subject = fillTemplate(t.emailSubject, d);
-  const body = fillTemplate(t.emailBody, d);
-  // Gmail compose URL
-  const to = encodeURIComponent('');
+  const curriculum = getCurriculumForGrade(d.grade, d.course);
+  let subject = fillTemplate(t.emailSubject, d);
+  let body = fillTemplate(t.emailBody, d);
+
+  // If no curriculum available, strip the curriculum block from the body
+  if (!curriculum) {
+    body = body.replace(/📘[^\n]*\n[^\n]*\n\n/g, '');
+    body = body.replace(/[^\n]*Curriculum:\s*\n\s*\n/gi, '');
+  }
+
   const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(url, '_blank');
+}
+
+function actionPrettyEmail(demoId) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  if (!d.parentName || !d.childName) {
+    alert('Parent and child name are required for the email.');
+    return;
+  }
+
+  const curriculum = getCurriculumForGrade(d.grade, d.course);
+  const html = buildPrettyEmailHTML(d, curriculum);
+  const subject = fillTemplate(loadTemplates().emailSubject, d);
+
+  // Open in new tab via blob URL so the page can write its own HTML + helper bar
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const newWindow = window.open(url, '_blank');
+
+  // Cleanup after 5 minutes
+  setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
+
+  // Also copy subject to clipboard so user can paste it in Gmail
+  navigator.clipboard.writeText(subject).catch(() => {});
+}
+
+function buildPrettyEmailHTML(d, curriculum) {
+  const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const parentName = safe(d.parentName || 'there');
+  const childName = safe(d.childName || 'your child');
+  const grade = safe(d.grade || '');
+  const course = safe(d.course || 'Trial');
+  const dateStr = d.demoDate ? safe(formatDate(d.demoDate)) : 'To be confirmed';
+  const timeStr = d.demoTime ? safe(formatTime(d.demoTime)) : 'To be confirmed';
+  const classLink = safe(d.classLink || 'https://champ.brightchamps.com');
+  const curriculumLink = curriculum ? `https://drive.google.com/file/d/${curriculum.fileId}/view` : '';
+  const curriculumName = curriculum ? safe(curriculum.label) : '';
+
+  const subject = fillTemplate(loadTemplates().emailSubject, d);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pretty Email — Copy & Paste to Gmail</title>
+<style>
+  body { margin: 0; padding: 0; background-color: #f4f1ec; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .helper-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: #1a1a1a; color: #fff;
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .helper-bar .info {
+    font-size: 13px; line-height: 1.5;
+  }
+  .helper-bar .info strong { color: #ff8c42; }
+  .helper-bar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .helper-bar button, .helper-bar a {
+    background: #ff6b35; color: #fff;
+    padding: 8px 16px; border: none; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: background 0.15s;
+  }
+  .helper-bar button:hover, .helper-bar a:hover { background: #ff7a47; }
+  .helper-bar .ghost {
+    background: transparent; border: 1px solid #444;
+  }
+  .helper-bar .ghost:hover { background: #2a2a2a; }
+  #copied-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #4ade80; color: #fff;
+    padding: 12px 20px; border-radius: 8px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    display: none; z-index: 200;
+  }
+  #copied-toast.show { display: block; animation: slideIn 0.3s; }
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @media (max-width: 640px) {
+    .helper-bar { flex-direction: column; align-items: stretch; }
+    .helper-bar .actions { justify-content: stretch; }
+    .helper-bar button, .helper-bar a { flex: 1; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="helper-bar">
+  <div class="info">
+    📋 <strong>Subject already copied!</strong> Click "Open Gmail" → paste subject → select all this email → copy → paste in Gmail body.
+  </div>
+  <div class="actions">
+    <button onclick="copyEmailBody()">Copy Email Body</button>
+    <button onclick="copySubject()">Copy Subject</button>
+    <a href="https://mail.google.com/mail/u/0/?fs=1&tf=cm" target="_blank">Open Gmail Compose</a>
+    <button class="ghost" onclick="window.close()">Close</button>
+  </div>
+</div>
+
+<div id="copied-toast">✓ Copied!</div>
+
+<!-- ============ EMAIL CONTENT STARTS HERE ============ -->
+<div id="email-content">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f1ec;padding:32px 16px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#ff6b35 0%,#ff8c42 100%);padding:32px 40px;text-align:center;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+              <tr>
+                <td style="padding-right:10px;vertical-align:middle;">
+                  <div style="width:42px;height:42px;background-color:#ffffff;border-radius:10px;display:inline-block;text-align:center;line-height:42px;">
+                    <span style="font-size:22px;color:#ff6b35;font-weight:700;">★</span>
+                  </div>
+                </td>
+                <td style="vertical-align:middle;">
+                  <span style="font-size:24px;color:#ffffff;font-weight:700;letter-spacing:-0.5px;font-family:Georgia,'Times New Roman',serif;">Bright</span><span style="font-size:24px;color:#ffffff;font-weight:300;letter-spacing:-0.5px;font-family:Georgia,'Times New Roman',serif;">CHAMPS</span>
+                </td>
+              </tr>
+            </table>
+            <p style="color:#ffe5d9;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin:14px 0 0;font-weight:600;">
+              Window to Next-Gen Skills
+            </p>
+          </td>
+        </tr>
+
+        <!-- HERO -->
+        <tr>
+          <td style="padding:40px 40px 24px;text-align:center;">
+            <p style="font-size:13px;color:#ff6b35;letter-spacing:3px;text-transform:uppercase;margin:0 0 12px;font-weight:700;">
+              Trial Class Confirmed
+            </p>
+            <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:32px;color:#1a1a1a;margin:0 0 12px;font-weight:400;line-height:1.2;letter-spacing:-0.5px;">
+              See you soon, <em style="color:#ff6b35;">${parentName}</em>.
+            </h1>
+            <p style="font-size:15px;color:#666;line-height:1.6;margin:0;">
+              We're excited to have ${childName} join us. Here's everything you need.
+            </p>
+          </td>
+        </tr>
+
+        <!-- DETAILS CARD -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border:1px solid #ffd4bd;border-radius:12px;">
+              <tr>
+                <td style="padding:24px;">
+                  <p style="font-size:11px;color:#999;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 16px;font-weight:600;">
+                    Session Details
+                  </p>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="padding:8px 0;font-size:14px;color:#666;width:90px;">📅 Date</td>
+                      <td style="padding:8px 0;font-size:15px;color:#1a1a1a;font-weight:600;">${dateStr}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;font-size:14px;color:#666;">🕐 Time</td>
+                      <td style="padding:8px 0;font-size:15px;color:#1a1a1a;font-weight:600;">${timeStr}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;font-size:14px;color:#666;">👤 Student</td>
+                      <td style="padding:8px 0;font-size:15px;color:#1a1a1a;font-weight:600;">${childName}${grade ? ' (Grade ' + grade + ')' : ''}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;font-size:14px;color:#666;">📚 Course</td>
+                      <td style="padding:8px 0;font-size:15px;color:#1a1a1a;font-weight:600;">${course}</td>
+                    </tr>
+                  </table>
+
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+                    <tr>
+                      <td align="center">
+                        <a href="${classLink}" style="display:inline-block;background-color:#ff6b35;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+                          Join Class →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- WHAT TO EXPECT -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1a1a1a;margin:0 0 16px;font-weight:400;">
+              What to expect
+            </h2>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:12px 0;border-bottom:1px solid #f0ebe5;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="width:36px;vertical-align:top;font-size:18px;">🎯</td>
+                      <td>
+                        <p style="font-size:14px;color:#1a1a1a;margin:0 0 4px;font-weight:600;">Hands-on Live Class</p>
+                        <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">A live expert-led session showing how ${childName} will learn.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-bottom:1px solid #f0ebe5;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="width:36px;vertical-align:top;font-size:18px;">👨‍👩‍👧</td>
+                      <td>
+                        <p style="font-size:14px;color:#1a1a1a;margin:0 0 4px;font-weight:600;">Your Presence Matters</p>
+                        <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">Sit in with ${childName} — you'll see our approach firsthand.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-bottom:1px solid #f0ebe5;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="width:36px;vertical-align:top;font-size:18px;">💬</td>
+                      <td>
+                        <p style="font-size:14px;color:#1a1a1a;margin:0 0 4px;font-weight:600;">Personal 1:1 Counselling</p>
+                        <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">After class, I'll join to discuss the best path for ${childName}.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="width:36px;vertical-align:top;font-size:18px;">🎁</td>
+                      <td>
+                        <p style="font-size:14px;color:#1a1a1a;margin:0 0 4px;font-weight:600;">Exclusive Scholarship</p>
+                        <p style="font-size:13px;color:#666;margin:0;line-height:1.5;">Available on-call after the session — limited time only.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        ${curriculumLink ? `
+        <!-- CURRICULUM -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border-radius:12px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <p style="font-size:11px;color:#ff6b35;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;font-weight:600;">
+                    📘 Curriculum Preview
+                  </p>
+                  <p style="font-size:15px;color:#1a1a1a;margin:0 0 12px;font-weight:600;">
+                    ${curriculumName}
+                  </p>
+                  <a href="${curriculumLink}" style="color:#ff6b35;text-decoration:none;font-size:14px;font-weight:600;">
+                    View curriculum overview →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        <!-- PREP CHECKLIST -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a1a1a;border-radius:12px;">
+              <tr>
+                <td style="padding:24px;">
+                  <p style="font-size:11px;color:#ff8c42;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 16px;font-weight:600;">
+                    Before the class
+                  </p>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr><td style="padding:6px 0;font-size:14px;color:#ffffff;"><span style="color:#ff6b35;font-weight:700;">✓</span>&nbsp;&nbsp;Laptop or PC ready</td></tr>
+                    <tr><td style="padding:6px 0;font-size:14px;color:#ffffff;"><span style="color:#ff6b35;font-weight:700;">✓</span>&nbsp;&nbsp;Stable internet connection</td></tr>
+                    <tr><td style="padding:6px 0;font-size:14px;color:#ffffff;"><span style="color:#ff6b35;font-weight:700;">✓</span>&nbsp;&nbsp;Join 5 minutes early to test audio/video</td></tr>
+                    <tr><td style="padding:6px 0;font-size:14px;color:#ffffff;"><span style="color:#ff6b35;font-weight:700;">✓</span>&nbsp;&nbsp;A quiet space where ${childName} can focus</td></tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- TRUST BADGES -->
+        <tr>
+          <td style="padding:0 40px 32px;text-align:center;">
+            <p style="font-size:11px;color:#999;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 16px;font-weight:600;">
+              Trusted Worldwide
+            </p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+              <tr>
+                <td style="padding:0 12px;font-size:12px;color:#666;font-weight:600;">STEM<br><span style="color:#999;font-weight:400;font-size:10px;">Accredited</span></td>
+                <td style="padding:0 12px;color:#ddd;">|</td>
+                <td style="padding:0 12px;font-size:12px;color:#666;font-weight:600;">Harvard<br><span style="color:#999;font-weight:400;font-size:10px;">Collaboration</span></td>
+                <td style="padding:0 12px;color:#ddd;">|</td>
+                <td style="padding:0 12px;font-size:12px;color:#666;font-weight:600;">MIT • IIT • IIM<br><span style="color:#999;font-weight:400;font-size:10px;">Mentors</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- SIGN-OFF -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0 0 8px;">
+              Any questions before we meet? Just reply — I'm here.
+            </p>
+            <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0 0 24px;">
+              Looking forward to it.
+            </p>
+            <p style="font-size:15px;color:#1a1a1a;margin:0;font-weight:600;font-family:Georgia,'Times New Roman',serif;">
+              Rituraj
+            </p>
+            <p style="font-size:13px;color:#666;margin:2px 0 0;">
+              Academic Counsellor, BrightCHAMPS
+            </p>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background-color:#fafafa;padding:24px 40px;border-top:1px solid #f0ebe5;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="text-align:center;">
+                  <a href="https://www.brightchamps.com" style="color:#ff6b35;text-decoration:none;font-size:13px;font-weight:600;">brightchamps.com</a>
+                  <p style="font-size:11px;color:#999;margin:8px 0 0;line-height:1.5;">
+                    LIVE 1:1 Online Smart Technology Classes · Grades 1–12
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</div>
+<!-- ============ EMAIL CONTENT ENDS HERE ============ -->
+
+<script>
+  const EMAIL_SUBJECT = ${JSON.stringify(subject)};
+
+  function showToast(text) {
+    const t = document.getElementById('copied-toast');
+    t.textContent = '✓ ' + text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function copySubject() {
+    navigator.clipboard.writeText(EMAIL_SUBJECT).then(() => {
+      showToast('Subject copied!');
+    });
+  }
+
+  function copyEmailBody() {
+    const content = document.getElementById('email-content');
+    const range = document.createRange();
+    range.selectNodeContents(content);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    try {
+      document.execCommand('copy');
+      showToast('Email body copied! Paste in Gmail.');
+    } catch (e) {
+      alert('Copy failed. Please select the email manually and press Ctrl+C.');
+    }
+    sel.removeAllRanges();
+  }
+
+  // Auto-copy subject on page load
+  window.addEventListener('load', () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(EMAIL_SUBJECT).catch(() => {});
+    }
+  });
+</script>
+
+</body>
+</html>`;
 }
 
 function actionCopySMS(demoId) {
