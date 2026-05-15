@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f; --surface: #15151a; --surface-2: #1c1c23;
+    --border: #2a2a33; --border-soft: #1f1f27;
+    --text: #ededf0; --text-dim: #8b8b95; --text-faint: #5a5a64;
+    --accent: #ff6b35; --success: #4ade80; --warning: #fbbf24;
+    --danger: #f87171; --info: #60a5fa;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height: 100vh; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(255, 107, 53, 0.04), transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(96, 165, 250, 0.03), transparent 50%);
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 32px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-soft); flex-wrap: wrap; gap: 16px;
+  }
+  .brand h1 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 36px; letter-spacing: -0.02em; line-height: 1;
+  }
+  .brand h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .brand p {
+    font-size: 13px; color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em; margin-top: 4px;
+  }
+  .header-actions { display: flex; gap: 12px; align-items: center; }
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 32px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border-soft);
+    border-radius: 12px; padding: 18px 20px; transition: border-color 0.2s;
+  }
+  .stat:hover { border-color: var(--border); }
+  .stat-label {
+    font-size: 11px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-value {
+    font-family: 'Fraunces', serif; font-size: 32px;
+    font-weight: 500; line-height: 1;
+  }
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.success { color: var(--success); }
+  .stat-value.warning { color: var(--warning); }
+  .stat-value.info { color: var(--info); }
+  .filters {
+    display: flex; gap: 4px; margin-bottom: 20px;
+    background: var(--surface); padding: 4px;
+    border-radius: 10px; width: fit-content;
+    border: 1px solid var(--border-soft); flex-wrap: wrap;
+  }
+  .filter-tab {
+    padding: 8px 16px; background: transparent; border: none;
+    color: var(--text-dim); font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500; border-radius: 7px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { background: var(--surface-2); color: var(--text); }
+  .filter-tab .count {
+    margin-left: 6px; font-size: 11px; color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .filter-tab.active .count { color: var(--accent); }
+  .search-bar { margin-bottom: 20px; position: relative; }
+  .search-bar input {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px; padding: 12px 16px 12px 42px;
+    color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 14px; transition: border-color 0.15s;
+  }
+  .search-bar input:focus { outline: none; border-color: var(--accent); }
+  .search-bar::before {
+    content: "⌕"; position: absolute; left: 16px; top: 50%;
+    transform: translateY(-50%); color: var(--text-faint); font-size: 18px;
+  }
+  .btn {
+    padding: 10px 18px; border: none; border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: 13px;
+    font-weight: 500; cursor: pointer; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #ff7a47; transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--surface-2); }
+  .btn-ghost { background: transparent; color: var(--text-dim); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-icon { padding: 6px 10px; font-size: 12px; }
+  .demos-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+  .demo-card {
+    background: var(--surface); border: 1px solid var(--border-soft);
+    border-radius: 14px; padding: 20px; transition: all 0.2s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .demo-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--text-faint); transition: background 0.2s;
+  }
+  .demo-card.today::before { background: var(--accent); }
+  .demo-card.confirmed::before { background: var(--success); }
+  .demo-card.attended::before { background: var(--info); }
+  .demo-card.no-show::before { background: var(--danger); }
+  .demo-card.closed-won::before { background: var(--success); }
+  .demo-card.closed-lost::before { background: var(--text-faint); }
+  .demo-card:hover {
+    border-color: var(--border); transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 12px; gap: 12px;
+  }
+  .child-info h3 {
+    font-family: 'Fraunces', serif; font-size: 22px;
+    font-weight: 500; letter-spacing: -0.01em;
+    margin-bottom: 2px; line-height: 1.2;
+  }
+  .child-info .meta {
+    font-size: 12px; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .status-badge {
+    font-size: 10px; padding: 4px 10px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 600; font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .status-scheduled { background: rgba(96, 165, 250, 0.15); color: var(--info); }
+  .status-confirmed { background: rgba(74, 222, 128, 0.15); color: var(--success); }
+  .status-attended { background: rgba(96, 165, 250, 0.15); color: var(--info); }
+  .status-no-show { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+  .status-rescheduled { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+  .status-closed-won { background: rgba(74, 222, 128, 0.2); color: var(--success); }
+  .status-closed-lost { background: rgba(138, 138, 148, 0.2); color: var(--text-dim); }
+  .card-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--border-soft);
+    font-size: 13px;
+  }
+  .card-row:last-child { border-bottom: none; }
+  .card-row .label { color: var(--text-dim); font-size: 12px; }
+  .card-row .value {
+    color: var(--text); font-weight: 500;
+    text-align: right; max-width: 60%; word-break: break-word;
+  }
+  .card-row .value.accent { color: var(--accent); }
+  .card-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 100; padding: 40px 20px; overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; max-width: 720px; width: 100%;
+    padding: 32px; position: relative; margin: auto 0;
+  }
+  .modal h2 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 26px; margin-bottom: 24px; letter-spacing: -0.01em;
+  }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    background: transparent; border: none;
+    color: var(--text-dim); font-size: 24px; cursor: pointer;
+    line-height: 1; padding: 4px 10px; border-radius: 6px;
+  }
+  .modal-close:hover { color: var(--text); background: var(--surface-2); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 500; font-family: 'JetBrains Mono', monospace;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--bg); border: 1px solid var(--border-soft);
+    border-radius: 8px; padding: 10px 12px;
+    color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 14px; transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-group textarea {
+    resize: vertical; min-height: 70px;
+    font-family: 'Inter', sans-serif;
+  }
+  .section-divider {
+    grid-column: 1 / -1; font-size: 11px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    font-weight: 600; font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .detail-section { margin-bottom: 24px; }
+  .detail-section h3 {
+    font-size: 11px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .detail-item { padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+  .detail-item.full { grid-column: 1 / -1; }
+  .detail-item .label {
+    font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 4px; font-family: 'JetBrains Mono', monospace;
+  }
+  .detail-item .value { font-size: 14px; color: var(--text); word-break: break-word; }
+  .detail-item .value.empty { color: var(--text-faint); font-style: italic; }
+  .link-button { color: var(--accent); text-decoration: none; word-break: break-all; }
+  .link-button:hover { text-decoration: underline; }
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-faint); }
+  .empty-state h3 {
+    font-family: 'Fraunces', serif; font-size: 24px;
+    margin-bottom: 8px; color: var(--text-dim);
+  }
+  .empty-state p { font-size: 14px; margin-bottom: 24px; }
+  .loading {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+  @media (max-width: 640px) {
+    .container { padding: 20px 16px 60px; }
+    .brand h1 { font-size: 28px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .modal { padding: 24px; }
+    .demos-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <h1>Demo <em>Tracker</em></h1>
+      <p>// trial classes & follow-ups</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="exportData()">Export</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Demo</button>
+    </div>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="filters" id="filters"></div>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search by child, parent, status, course..." oninput="renderDemos()">
+  </div>
+  <div id="demos-container">
+    <div class="loading">Loading your demos...</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="form-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeFormModal()">×</button>
+    <h2 id="modal-title">Add New Demo</h2>
+    <form id="demo-form" onsubmit="saveDemo(event)">
+      <input type="hidden" id="demo-id">
+      <div class="form-grid">
+        <div class="section-divider">Basics</div>
+        <div class="form-group"><label for="parent-name">Parent Name *</label><input type="text" id="parent-name" required></div>
+        <div class="form-group"><label for="child-name">Child Name *</label><input type="text" id="child-name" required></div>
+        <div class="form-group"><label for="grade">Grade</label><input type="text" id="grade" placeholder="e.g., 5"></div>
+        <div class="form-group"><label for="age">Age</label><input type="text" id="age" placeholder="e.g., 10"></div>
+        <div class="form-group">
+          <label for="course">Course</label>
+          <select id="course">
+            <option value="Coding">Coding</option>
+            <option value="Robotics">Robotics</option>
+            <option value="Math">Math</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="Scheduled">Scheduled</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Attended">Attended</option>
+            <option value="No-show">No-show</option>
+            <option value="Rescheduled">Rescheduled</option>
+            <option value="Closed-Won">Closed-Won</option>
+            <option value="Closed-Lost">Closed-Lost</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="demo-date">Date</label><input type="date" id="demo-date"></div>
+        <div class="form-group"><label for="demo-time">Time</label><input type="time" id="demo-time"></div>
+        <div class="form-group full"><label for="class-link">Class Link</label><input type="url" id="class-link" placeholder="https://..."></div>
+        <div class="form-group"><label for="phone">Phone / WhatsApp</label><input type="text" id="phone"></div>
+        <div class="form-group"><label for="timezone">Timezone</label><input type="text" id="timezone" placeholder="e.g., EST, IST"></div>
+
+        <div class="section-divider">Discovery Notes</div>
+        <div class="form-group full"><label for="trigger">"Why now?" — what triggered interest</label><textarea id="trigger" placeholder="e.g., Friend started coding, school doesn't offer it..."></textarea></div>
+        <div class="form-group"><label for="personality">Child's Personality</label><textarea id="personality" placeholder="Shy, curious, has tried Scratch..."></textarea></div>
+        <div class="form-group"><label for="dream-project">Child's Dream Project</label><textarea id="dream-project" placeholder="Minecraft mod, game, app..."></textarea></div>
+        <div class="form-group"><label for="parent-vision">Parent's Vision</label><textarea id="parent-vision" placeholder="What success looks like for them"></textarea></div>
+        <div class="form-group"><label for="pain-point">Pain Point</label><textarea id="pain-point" placeholder="School doesn't offer enough, etc."></textarea></div>
+
+        <div class="section-divider">Schedule & Format</div>
+        <div class="form-group"><label for="preferred-schedule">Preferred Schedule</label><input type="text" id="preferred-schedule" placeholder="e.g., Weekend mornings"></div>
+        <div class="form-group">
+          <label for="format-pref">Format Preference</label>
+          <select id="format-pref">
+            <option value="">— Not discussed —</option>
+            <option value="One-to-One">One-to-One</option>
+            <option value="Small Group">Small Group</option>
+            <option value="Undecided">Undecided</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="decision-maker">Decision Dynamic</label>
+          <select id="decision-maker">
+            <option value="">—</option>
+            <option value="Sole Decision">Sole Decision</option>
+            <option value="Needs Spouse">Needs to discuss with spouse</option>
+            <option value="Needs Family">Needs to discuss with family</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="frequency">Sessions per Week</label><input type="text" id="frequency" placeholder="e.g., 2 per week"></div>
+
+        <div class="section-divider">Pricing & Objections</div>
+        <div class="form-group"><label for="package-discussed">Package Discussed</label><input type="text" id="package-discussed" placeholder="e.g., Maestro, Robo Premier"></div>
+        <div class="form-group"><label for="price-quoted">Price Quoted</label><input type="text" id="price-quoted" placeholder="e.g., $1,318"></div>
+        <div class="form-group full"><label for="objections">Objections Raised</label><textarea id="objections" placeholder="Too expensive, need to think, etc."></textarea></div>
+
+        <div class="section-divider">Follow-up</div>
+        <div class="form-group"><label for="followup-date">Next Follow-up Date</label><input type="date" id="followup-date"></div>
+        <div class="form-group">
+          <label for="followup-channel">Follow-up Channel</label>
+          <select id="followup-channel">
+            <option value="">—</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Call">Call</option>
+            <option value="Email">Email</option>
+            <option value="SMS">SMS</option>
+          </select>
+        </div>
+        <div class="form-group full"><label for="followup-plan">Follow-up Plan / What to Say</label><textarea id="followup-plan" placeholder="Send pricing PDF, check if they discussed with spouse..."></textarea></div>
+        <div class="form-group full"><label for="general-notes">General Notes</label><textarea id="general-notes" placeholder="Anything else worth remembering..." rows="3"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Demo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeDetailModal()">×</button>
+    <div id="detail-body"></div>
+  </div>
+</div>
+
+<script>
+  let demos = [];
+  let activeFilter = 'all';
+
+  async function loadDemos() {
+    try {
+      const result = await window.storage.list('demo:');
+      if (!result || !result.keys || result.keys.length === 0) {
+        demos = []; render(); return;
+      }
+      const loaded = [];
+      for (const key of result.keys) {
+        try {
+          const item = await window.storage.get(key);
+          if (item && item.value) loaded.push(JSON.parse(item.value));
+        } catch (e) {}
+      }
+      demos = loaded; render();
+    } catch (e) {
+      demos = []; render();
+    }
+  }
+
+  async function saveDemoToStorage(demo) {
+    try { await window.storage.set('demo:' + demo.id, JSON.stringify(demo)); }
+    catch (e) { alert('Failed to save. Please try again.'); }
+  }
+
+  async function deleteDemoFromStorage(id) {
+    try { await window.storage.delete('demo:' + id); } catch (e) {}
+  }
+
+  function render() { renderStats(); renderFilters(); renderDemos(); }
+
+  function renderStats() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = demos.filter(d => d.demoDate === today).length;
+    const pendingFollowups = demos.filter(d =>
+      d.followupDate && d.followupDate <= today &&
+      !['Closed-Won', 'Closed-Lost'].includes(d.status)
+    ).length;
+    const wonCount = demos.filter(d => d.status === 'Closed-Won').length;
+    const activeCount = demos.filter(d =>
+      !['Closed-Won', 'Closed-Lost', 'No-show'].includes(d.status)
+    ).length;
+
+    document.getElementById('stats').innerHTML =
+      '<div class="stat"><div class="stat-label">Today</div><div class="stat-value accent">' + todayCount + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Active Pipeline</div><div class="stat-value info">' + activeCount + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Pending Follow-ups</div><div class="stat-value warning">' + pendingFollowups + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Closed Won</div><div class="stat-value success">' + wonCount + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Total Demos</div><div class="stat-value">' + demos.length + '</div></div>';
+  }
+
+  function renderFilters() {
+    const today = new Date().toISOString().split('T')[0];
+    const counts = {
+      all: demos.length,
+      today: demos.filter(d => d.demoDate === today).length,
+      upcoming: demos.filter(d => d.demoDate > today).length,
+      followups: demos.filter(d =>
+        d.followupDate && d.followupDate <= today &&
+        !['Closed-Won', 'Closed-Lost'].includes(d.status)
+      ).length,
+      won: demos.filter(d => d.status === 'Closed-Won').length,
+    };
+    const tabs = [
+      { id: 'all', label: 'All' },
+      { id: 'today', label: 'Today' },
+      { id: 'upcoming', label: 'Upcoming' },
+      { id: 'followups', label: 'Follow-ups' },
+      { id: 'won', label: 'Closed Won' },
+    ];
+    document.getElementById('filters').innerHTML = tabs.map(t =>
+      '<button class="filter-tab ' + (activeFilter === t.id ? 'active' : '') +
+      '" onclick="setFilter(\'' + t.id + '\')">' + t.label +
+      '<span class="count">' + counts[t.id] + '</span></button>'
+    ).join('');
+  }
+
+  function setFilter(id) { activeFilter = id; renderFilters(); renderDemos(); }
+
+  function renderDemos() {
+    const container = document.getElementById('demos-container');
+    const search = document.getElementById('search').value.toLowerCase();
+    const today = new Date().toISOString().split('T')[0];
+
+    let filtered = demos.slice();
+    if (activeFilter === 'today') filtered = filtered.filter(d => d.demoDate === today);
+    else if (activeFilter === 'upcoming') filtered = filtered.filter(d => d.demoDate > today);
+    else if (activeFilter === 'followups') filtered = filtered.filter(d =>
+      d.followupDate && d.followupDate <= today &&
+      !['Closed-Won', 'Closed-Lost'].includes(d.status)
+    );
+    else if (activeFilter === 'won') filtered = filtered.filter(d => d.status === 'Closed-Won');
+
+    if (search) {
+      filtered = filtered.filter(d => {
+        const hay = [d.parentName, d.childName, d.status, d.course, d.grade,
+          d.objections, d.generalNotes, d.parentVision, d.painPoint, d.trigger]
+          .filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(search);
+      });
+    }
+
+    filtered.sort((a, b) => {
+      const dA = a.demoDate || '9999-99-99';
+      const dB = b.demoDate || '9999-99-99';
+      return dA.localeCompare(dB);
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state"><h3>' +
+        (demos.length === 0 ? 'No demos yet' : 'No demos match this filter') +
+        '</h3><p>' + (demos.length === 0 ?
+          'Click "+ Add Demo" to start tracking your first trial class.' :
+          'Try a different filter or search term.') + '</p></div>';
+      return;
+    }
+
+    container.innerHTML = '<div class="demos-grid">' +
+      filtered.map(d => renderCard(d, today)).join('') + '</div>';
+  }
+
+  function renderCard(d, today) {
+    const isToday = d.demoDate === today;
+    const statusClass = (d.status || 'scheduled').toLowerCase().replace(/\s/g, '-');
+    const cardClass = isToday ? 'today' : statusClass;
+    const formattedDate = d.demoDate ? formatDate(d.demoDate) : '—';
+    const formattedTime = d.demoTime ? formatTime(d.demoTime) : '';
+    const dateTime = formattedTime ? formattedDate + ' · ' + formattedTime : formattedDate;
+    const followupAlert = d.followupDate && d.followupDate <= today &&
+      !['Closed-Won', 'Closed-Lost'].includes(d.status);
+
+    return '<div class="demo-card ' + cardClass + '" onclick="openDetail(\'' + d.id + '\')">' +
+      '<div class="card-header">' +
+        '<div class="child-info">' +
+          '<h3>' + escapeHtml(d.childName || 'Unnamed') + '</h3>' +
+          '<div class="meta">' + escapeHtml(d.parentName || '—') +
+          (d.grade ? ' · Grade ' + escapeHtml(d.grade) : '') + '</div>' +
+        '</div>' +
+        '<div class="status-badge status-' + statusClass + '">' + escapeHtml(d.status || 'Scheduled') + '</div>' +
+      '</div>' +
+      '<div class="card-row"><span class="label">Course</span><span class="value">' + escapeHtml(d.course || '—') + '</span></div>' +
+      '<div class="card-row"><span class="label">When</span><span class="value ' + (isToday ? 'accent' : '') + '">' +
+        dateTime + (isToday ? ' · today' : '') + '</span></div>' +
+      (d.followupDate ? '<div class="card-row"><span class="label">Follow-up</span><span class="value ' +
+        (followupAlert ? 'accent' : '') + '">' + formatDate(d.followupDate) +
+        (followupAlert ? ' · due' : '') + '</span></div>' : '') +
+      (d.packageDiscussed ? '<div class="card-row"><span class="label">Package</span><span class="value">' +
+        escapeHtml(d.packageDiscussed) + '</span></div>' : '') +
+      '<div class="card-actions" onclick="event.stopPropagation()">' +
+        '<button class="btn btn-secondary btn-icon" onclick="openEdit(\'' + d.id + '\')">Edit</button>' +
+        (d.classLink ? '<a class="btn btn-secondary btn-icon" href="' + escapeHtml(d.classLink) + '" target="_blank">Join</a>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  function openDetail(id) {
+    const d = demos.find(x => x.id === id);
+    if (!d) return;
+    const body = document.getElementById('detail-body');
+    body.innerHTML =
+      '<h2>' + escapeHtml(d.childName) +
+      ' <span style="font-size:14px;color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;">/ ' +
+      escapeHtml(d.parentName) + '</span></h2>' +
+      '<div class="detail-section"><h3>Basics</h3><div class="detail-grid">' +
+        detailItem('Status', d.status) + detailItem('Course', d.course) +
+        detailItem('Grade', d.grade) + detailItem('Age', d.age) +
+        detailItem('Date', d.demoDate ? formatDate(d.demoDate) : '') +
+        detailItem('Time', d.demoTime ? formatTime(d.demoTime) : '') +
+        detailItem('Phone', d.phone) + detailItem('Timezone', d.timezone) +
+        (d.classLink ? '<div class="detail-item full"><div class="label">Class Link</div><div class="value"><a class="link-button" href="' +
+          escapeHtml(d.classLink) + '" target="_blank">' + escapeHtml(d.classLink) + '</a></div></div>' : '') +
+      '</div></div>' +
+      '<div class="detail-section"><h3>Discovery</h3><div class="detail-grid">' +
+        detailItem('Why Now', d.trigger, true) +
+        detailItem("Child's Personality", d.personality, true) +
+        detailItem('Dream Project', d.dreamProject, true) +
+        detailItem("Parent's Vision", d.parentVision, true) +
+        detailItem('Pain Point', d.painPoint, true) +
+      '</div></div>' +
+      '<div class="detail-section"><h3>Schedule & Format</h3><div class="detail-grid">' +
+        detailItem('Preferred Schedule', d.preferredSchedule) +
+        detailItem('Format', d.formatPref) +
+        detailItem('Decision Maker', d.decisionMaker) +
+        detailItem('Frequency', d.frequency) +
+      '</div></div>' +
+      '<div class="detail-section"><h3>Pricing & Objections</h3><div class="detail-grid">' +
+        detailItem('Package Discussed', d.packageDiscussed) +
+        detailItem('Price Quoted', d.priceQuoted) +
+        detailItem('Objections', d.objections, true) +
+      '</div></div>' +
+      '<div class="detail-section"><h3>Follow-up</h3><div class="detail-grid">' +
+        detailItem('Next Follow-up', d.followupDate ? formatDate(d.followupDate) : '') +
+        detailItem('Channel', d.followupChannel) +
+        detailItem('Plan', d.followupPlan, true) +
+      '</div></div>' +
+      (d.generalNotes ? '<div class="detail-section"><h3>Notes</h3><div class="detail-grid"><div class="detail-item full"><div class="value">' +
+        escapeHtml(d.generalNotes) + '</div></div></div></div>' : '') +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-ghost" onclick="deleteDemo(\'' + d.id + '\')" style="color:var(--danger);">Delete</button>' +
+        '<button class="btn btn-secondary" onclick="closeDetailModal()">Close</button>' +
+        '<button class="btn btn-primary" onclick="openEdit(\'' + d.id + '\')">Edit</button>' +
+      '</div>';
+    document.getElementById('detail-modal').classList.add('active');
+  }
+
+  function detailItem(label, value, full) {
+    const isEmpty = !value || value.toString().trim() === '';
+    return '<div class="detail-item ' + (full ? 'full' : '') + '">' +
+      '<div class="label">' + label + '</div>' +
+      '<div class="value ' + (isEmpty ? 'empty' : '') + '">' +
+      (isEmpty ? 'Not recorded' : escapeHtml(value)) + '</div></div>';
+  }
+
+  function closeDetailModal() { document.getElementById('detail-modal').classList.remove('active'); }
+
+  function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Add New Demo';
+    document.getElementById('demo-form').reset();
+    document.getElementById('demo-id').value = '';
+    document.getElementById('form-modal').classList.add('active');
+  }
+
+  function openEdit(id) {
+    closeDetailModal();
+    const d = demos.find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('modal-title').textContent = 'Edit Demo';
+    document.getElementById('demo-id').value = d.id;
+    const map = {
+      'parent-name': 'parentName', 'child-name': 'childName',
+      'grade': 'grade', 'age': 'age', 'course': 'course', 'status': 'status',
+      'demo-date': 'demoDate', 'demo-time': 'demoTime',
+      'class-link': 'classLink', 'phone': 'phone', 'timezone': 'timezone',
+      'trigger': 'trigger', 'personality': 'personality',
+      'dream-project': 'dreamProject', 'parent-vision': 'parentVision',
+      'pain-point': 'painPoint', 'preferred-schedule': 'preferredSchedule',
+      'format-pref': 'formatPref', 'decision-maker': 'decisionMaker',
+      'frequency': 'frequency', 'package-discussed': 'packageDiscussed',
+      'price-quoted': 'priceQuoted', 'objections': 'objections',
+      'followup-date': 'followupDate', 'followup-channel': 'followupChannel',
+      'followup-plan': 'followupPlan', 'general-notes': 'generalNotes'
+    };
+    Object.keys(map).forEach(f => {
+      const el = document.getElementById(f);
+      if (el) el.value = d[map[f]] || '';
+    });
+    document.getElementById('form-modal').classList.add('active');
+  }
+
+  function closeFormModal() { document.getElementById('form-modal').classList.remove('active'); }
+
+  async function saveDemo(e) {
+    e.preventDefault();
+    const id = document.getElementById('demo-id').value ||
+      (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+    const tv = id => (document.getElementById(id).value || '').trim();
+
+    const demo = {
+      id: id,
+      parentName: tv('parent-name'),
+      childName: tv('child-name'),
+      grade: tv('grade'), age: tv('age'),
+      course: document.getElementById('course').value,
+      status: document.getElementById('status').value,
+      demoDate: document.getElementById('demo-date').value,
+      demoTime: document.getElementById('demo-time').value,
+      classLink: tv('class-link'), phone: tv('phone'), timezone: tv('timezone'),
+      trigger: tv('trigger'), personality: tv('personality'),
+      dreamProject: tv('dream-project'), parentVision: tv('parent-vision'),
+      painPoint: tv('pain-point'), preferredSchedule: tv('preferred-schedule'),
+      formatPref: document.getElementById('format-pref').value,
+      decisionMaker: document.getElementById('decision-maker').value,
+      frequency: tv('frequency'),
+      packageDiscussed: tv('package-discussed'),
+      priceQuoted: tv('price-quoted'),
+      objections: tv('objections'),
+      followupDate: document.getElementById('followup-date').value,
+      followupChannel: document.getElementById('followup-channel').value,
+      followupPlan: tv('followup-plan'),
+      generalNotes: tv('general-notes'),
+      updatedAt: new Date().toISOString()
+    };
+
+    await saveDemoToStorage(demo);
+    const idx = demos.findIndex(d => d.id === id);
+    if (idx >= 0) demos[idx] = demo;
+    else demos.push(demo);
+    closeFormModal();
+    render();
+  }
+
+  async function deleteDemo(id) {
+    if (!confirm('Delete this demo? This cannot be undone.')) return;
+    await deleteDemoFromStorage(id);
+    demos = demos.filter(d => d.id !== id);
+    closeDetailModal();
+    render();
+  }
+
+  function exportData() {
+    const data = JSON.stringify(demos, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'demo-tracker-' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const parts = d.split('-');
+    const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    const parts = t.split(':');
+    const hour = parseInt(parts[0]);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return displayHour + ':' + parts[1] + ' ' + ampm;
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => {
+      if (e.target === o) o.classList.remove('active');
+    });
+  });
+
+  loadDemos();
+</script>
+</body>
+</html>
