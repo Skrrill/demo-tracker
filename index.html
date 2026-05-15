@@ -295,6 +295,116 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .reminder-banner {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 107, 53, 0.05));
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: pulse-banner 2s ease-in-out infinite;
+  }
+  @keyframes pulse-banner {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.2); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 107, 53, 0); }
+  }
+  .reminder-banner .reminder-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .reminder-banner .reminder-text {
+    flex: 1;
+    min-width: 200px;
+  }
+  .reminder-banner .reminder-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .reminder-banner .reminder-meta {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .reminder-banner .reminder-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .action-btn {
+    padding: 10px 12px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    text-align: center;
+  }
+  .action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .action-btn .ico {
+    font-size: 14px;
+  }
+  .template-tokens {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 12px;
+    line-height: 1.7;
+  }
+  .template-tokens code {
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .notif-permission-bar {
+    background: var(--surface);
+    border: 1px solid var(--warning);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .notif-permission-bar p {
+    font-size: 13px;
+    color: var(--text);
+    margin: 0;
+  }
   @media (max-width: 640px) {
     .container { padding: 20px 16px 60px; }
     .brand h1 { font-size: 28px; }
@@ -341,12 +451,14 @@
       <span id="sync-status" class="sync-status"><span class="dot"></span><span id="sync-text">connecting</span></span>
       <span id="user-email" style="font-size:11px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;"></span>
       <input type="file" id="import-file" accept=".json" style="display:none">
+      <button class="btn btn-secondary" id="templates-btn">Templates</button>
       <button class="btn btn-secondary" id="import-btn">Import</button>
       <button class="btn btn-secondary" id="export-btn">Export</button>
       <button class="btn btn-ghost" id="signout-btn" style="font-size:11px;">Sign Out</button>
       <button class="btn btn-primary" id="add-btn">+ Add Demo</button>
     </div>
   </header>
+  <div id="reminder-banner-container"></div>
   <div class="stats" id="stats"></div>
   <div class="filters" id="filters"></div>
   <div class="search-bar">
@@ -455,6 +567,78 @@
   <div class="modal">
     <button class="modal-close" id="detail-close">×</button>
     <div id="detail-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="templates-modal">
+  <div class="modal">
+    <button class="modal-close" id="templates-close">×</button>
+    <h2>Message Templates</h2>
+
+    <div class="template-tokens">
+      Use these tokens in your templates — they get replaced automatically:<br>
+      <code data-token="{child_name}">{child_name}</code>
+      <code data-token="{parent_name}">{parent_name}</code>
+      <code data-token="{date}">{date}</code>
+      <code data-token="{time}">{time}</code>
+      <code data-token="{course}">{course}</code>
+      <code data-token="{class_link}">{class_link}</code>
+      <code data-token="{grade}">{grade}</code>
+    </div>
+
+    <form id="templates-form">
+      <div class="form-grid">
+        <div class="section-divider">WhatsApp Reminder (24h before)</div>
+        <div class="form-group full">
+          <label for="tpl-wa-24h">Template</label>
+          <textarea id="tpl-wa-24h" rows="4"></textarea>
+        </div>
+
+        <div class="section-divider">WhatsApp Reminder (30 min before)</div>
+        <div class="form-group full">
+          <label for="tpl-wa-30m">Template</label>
+          <textarea id="tpl-wa-30m" rows="4"></textarea>
+        </div>
+
+        <div class="section-divider">Email — Curriculum Send</div>
+        <div class="form-group full">
+          <label for="tpl-email-subject">Subject</label>
+          <input type="text" id="tpl-email-subject">
+        </div>
+        <div class="form-group full">
+          <label for="tpl-email-body">Body</label>
+          <textarea id="tpl-email-body" rows="8"></textarea>
+        </div>
+
+        <div class="section-divider">SMS (for Aircall - US parents)</div>
+        <div class="form-group full">
+          <label for="tpl-sms">Template</label>
+          <textarea id="tpl-sms" rows="3"></textarea>
+        </div>
+
+        <div class="section-divider">Settings</div>
+        <div class="form-group">
+          <label for="reminder-30m-enabled">30-min Browser Reminder</label>
+          <select id="reminder-30m-enabled">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reminder-24h-enabled">24-hr Browser Reminder</label>
+          <select id="reminder-24h-enabled">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="templates-reset">Reset to defaults</button>
+        <button type="button" class="btn btn-secondary" id="templates-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Templates</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -578,6 +762,7 @@ function startListening() {
       demos = snapshot.docs.map(d => d.data());
       setSyncStatus('ok', 'synced');
       render();
+      checkReminders();
     },
     err => {
       console.error(err);
@@ -587,7 +772,7 @@ function startListening() {
 }
 
 // ============ RENDER ============
-function render() { renderStats(); renderFilters(); renderDemos(); }
+function render() { renderStats(); renderFilters(); renderDemos(); renderReminderBanner(); renderNotificationBar(); }
 
 function renderStats() {
   const today = getTodayISO();
@@ -782,6 +967,15 @@ function openDetail(id) {
     '</div></div>' +
     (d.generalNotes ? '<div class="detail-section"><h3>Notes</h3><div class="detail-grid"><div class="detail-item full"><div class="value">' +
       escapeHtml(d.generalNotes) + '</div></div></div></div>' : '') +
+    '<div class="detail-section"><h3>Quick Actions</h3>' +
+      '<div class="action-grid">' +
+        (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
+        (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
+        '<button class="action-btn" data-act="email">📧 Email Curriculum</button>' +
+        (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
+        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📅 Add to Calendar</button>' : '') +
+      '</div>' +
+    '</div>' +
     '<div class="modal-actions">' +
       '<button class="btn btn-ghost" id="detail-delete" data-id="' + escapeHtml(d.id) + '" style="color:var(--danger);">Delete</button>' +
       '<button class="btn btn-secondary" id="detail-close-btn">Close</button>' +
@@ -792,6 +986,18 @@ function openDetail(id) {
   document.getElementById('detail-delete').addEventListener('click', () => deleteDemoNow(d.id));
   document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
   document.getElementById('detail-edit').addEventListener('click', () => openEdit(d.id));
+
+  // Quick action buttons
+  document.querySelectorAll('#detail-body .action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.act;
+      if (act === 'wa24') actionWhatsApp(d.id, '24h');
+      else if (act === 'wa30') actionWhatsApp(d.id, '30m');
+      else if (act === 'email') actionEmail(d.id);
+      else if (act === 'sms') actionCopySMS(d.id);
+      else if (act === 'cal') actionAddToCalendar(d.id);
+    });
+  });
 }
 
 function closeDetailModal() {
@@ -903,6 +1109,344 @@ async function importData(event) {
   reader.readAsText(file);
 }
 
+// ============ TEMPLATES ============
+const DEFAULT_TEMPLATES = {
+  wa24h: `Hi {parent_name},\n\nJust a quick reminder — {child_name}'s {course} trial class is tomorrow at {time}.\n\nLooking forward to it!\n\n- Rituraj`,
+  wa30m: `Hi {parent_name}, just a quick reminder — {child_name}'s class starts in 30 minutes at {time}.\n\nJoin link: {class_link}\n\nSee you soon!`,
+  emailSubject: `{child_name}'s {course} curriculum & trial details`,
+  emailBody: `Hi {parent_name},\n\nAs discussed, attaching the {course} curriculum overview for {child_name} (Grade {grade}).\n\nDetails of the trial class:\n• Date: {date}\n• Time: {time}\n• Join link: {class_link}\n\nFeel free to reach out if you have any questions before the class.\n\nWarm regards,\nRituraj\nBrightCHAMPS`,
+  sms: `Hi {parent_name}, reminder: {child_name}'s class is at {time} today. Join: {class_link} - Rituraj, BrightCHAMPS`,
+  reminder30m: true,
+  reminder24h: true
+};
+
+const TEMPLATE_KEY = 'demo-tracker-templates-v1';
+
+function loadTemplates() {
+  try {
+    const raw = localStorage.getItem(TEMPLATE_KEY);
+    if (!raw) return { ...DEFAULT_TEMPLATES };
+    return { ...DEFAULT_TEMPLATES, ...JSON.parse(raw) };
+  } catch (e) {
+    return { ...DEFAULT_TEMPLATES };
+  }
+}
+
+function saveTemplates(t) {
+  try {
+    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(t));
+    return true;
+  } catch (e) {
+    alert('Failed to save templates.');
+    return false;
+  }
+}
+
+function fillTemplate(template, demo) {
+  if (!template) return '';
+  const tokens = {
+    '{child_name}': demo.childName || '',
+    '{parent_name}': demo.parentName || '',
+    '{date}': demo.demoDate ? formatDate(demo.demoDate) : '',
+    '{time}': demo.demoTime ? formatTime(demo.demoTime) : '',
+    '{course}': demo.course || '',
+    '{class_link}': demo.classLink || '',
+    '{grade}': demo.grade || ''
+  };
+  let result = template;
+  Object.keys(tokens).forEach(k => {
+    result = result.split(k).join(tokens[k]);
+  });
+  return result;
+}
+
+function openTemplatesModal() {
+  const t = loadTemplates();
+  document.getElementById('tpl-wa-24h').value = t.wa24h;
+  document.getElementById('tpl-wa-30m').value = t.wa30m;
+  document.getElementById('tpl-email-subject').value = t.emailSubject;
+  document.getElementById('tpl-email-body').value = t.emailBody;
+  document.getElementById('tpl-sms').value = t.sms;
+  document.getElementById('reminder-30m-enabled').value = String(t.reminder30m !== false);
+  document.getElementById('reminder-24h-enabled').value = String(t.reminder24h !== false);
+  document.getElementById('templates-modal').classList.add('active');
+}
+
+function closeTemplatesModal() {
+  document.getElementById('templates-modal').classList.remove('active');
+}
+
+function handleTemplatesSubmit(e) {
+  e.preventDefault();
+  const t = {
+    wa24h: document.getElementById('tpl-wa-24h').value,
+    wa30m: document.getElementById('tpl-wa-30m').value,
+    emailSubject: document.getElementById('tpl-email-subject').value,
+    emailBody: document.getElementById('tpl-email-body').value,
+    sms: document.getElementById('tpl-sms').value,
+    reminder30m: document.getElementById('reminder-30m-enabled').value === 'true',
+    reminder24h: document.getElementById('reminder-24h-enabled').value === 'true'
+  };
+  if (saveTemplates(t)) {
+    closeTemplatesModal();
+    render();
+  }
+}
+
+function resetTemplates() {
+  if (!confirm('Reset all templates to defaults? Your customizations will be lost.')) return;
+  saveTemplates({ ...DEFAULT_TEMPLATES });
+  openTemplatesModal();
+}
+
+// ============ ONE-CLICK ACTIONS ============
+function cleanPhone(p) {
+  if (!p) return '';
+  return p.replace(/[^\d+]/g, '');
+}
+
+function actionWhatsApp(demoId, kind) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  if (!d.phone) { alert('No phone number saved for this demo.'); return; }
+  const t = loadTemplates();
+  const tpl = kind === '24h' ? t.wa24h : t.wa30m;
+  const msg = fillTemplate(tpl, d);
+  const phone = cleanPhone(d.phone).replace(/^\+/, '');
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+function actionEmail(demoId) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  const t = loadTemplates();
+  const subject = fillTemplate(t.emailSubject, d);
+  const body = fillTemplate(t.emailBody, d);
+  // Gmail compose URL
+  const to = encodeURIComponent('');
+  const url = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+}
+
+function actionCopySMS(demoId) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  const t = loadTemplates();
+  const msg = fillTemplate(t.sms, d);
+  const phone = cleanPhone(d.phone);
+  const text = phone ? `${phone}\n\n${msg}` : msg;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied to clipboard!\n\nPaste into Aircall to send SMS.');
+  }).catch(() => {
+    prompt('Copy this:', text);
+  });
+}
+
+function actionAddToCalendar(demoId) {
+  const d = demos.find(x => x.id === demoId);
+  if (!d) return;
+  if (!d.demoDate || !d.demoTime) {
+    alert('Please set both date and time first.');
+    return;
+  }
+
+  // Build ICS file
+  const [y, m, day] = d.demoDate.split('-').map(Number);
+  const [hh, mm] = d.demoTime.split(':').map(Number);
+  const start = new Date(y, m - 1, day, hh, mm);
+  const end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour
+
+  const fmt = dt => {
+    const pad = n => String(n).padStart(2, '0');
+    return dt.getFullYear() + pad(dt.getMonth() + 1) + pad(dt.getDate()) + 'T' +
+      pad(dt.getHours()) + pad(dt.getMinutes()) + '00';
+  };
+
+  const summary = `${d.course || 'Demo'} Trial: ${d.childName} (${d.parentName})`;
+  const description = [
+    `Parent: ${d.parentName}`,
+    `Child: ${d.childName}${d.grade ? ' (Grade ' + d.grade + ')' : ''}`,
+    `Phone: ${d.phone || 'N/A'}`,
+    d.classLink ? `Join: ${d.classLink}` : '',
+    d.trigger ? `\\nWhy now: ${d.trigger}` : '',
+    d.dreamProject ? `\\nDream project: ${d.dreamProject}` : '',
+    d.parentVision ? `\\nVision: ${d.parentVision}` : ''
+  ].filter(Boolean).join('\\n');
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Demo Tracker//EN',
+    'BEGIN:VEVENT',
+    `UID:${d.id}@demo-tracker`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${description}`,
+    'BEGIN:VALARM',
+    'TRIGGER:-PT30M',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${summary} in 30 minutes`,
+    'END:VALARM',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT1D',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${summary} tomorrow`,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${d.childName.replace(/\s/g, '_')}-demo.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ============ BROWSER NOTIFICATIONS & REMINDERS ============
+const NOTIFIED_KEY = 'demo-tracker-notified-v1';
+
+function getNotifiedMap() {
+  try { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function markNotified(demoId, kind) {
+  const m = getNotifiedMap();
+  m[demoId + ':' + kind] = Date.now();
+  localStorage.setItem(NOTIFIED_KEY, JSON.stringify(m));
+}
+
+function wasNotified(demoId, kind) {
+  const m = getNotifiedMap();
+  return !!m[demoId + ':' + kind];
+}
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert('Your browser does not support notifications.');
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    renderNotificationBar();
+    renderReminderBanner();
+  });
+}
+
+function showNotification(title, body) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification(title, { body, icon: '', tag: title });
+    } catch (e) {}
+  }
+}
+
+function getDemoDateTime(d) {
+  if (!d.demoDate || !d.demoTime) return null;
+  const [y, m, day] = d.demoDate.split('-').map(Number);
+  const [hh, mm] = d.demoTime.split(':').map(Number);
+  return new Date(y, m - 1, day, hh, mm);
+}
+
+function renderNotificationBar() {
+  const container = document.getElementById('reminder-banner-container');
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted' || Notification.permission === 'denied') return;
+  const bar = document.createElement('div');
+  bar.className = 'notif-permission-bar';
+  bar.id = 'notif-bar';
+  bar.innerHTML = `
+    <p>🔔 Enable browser notifications to get alerts 30 mins before every demo.</p>
+    <button class="btn btn-primary" id="enable-notif">Enable Notifications</button>
+  `;
+  // Remove existing
+  const existing = document.getElementById('notif-bar');
+  if (existing) existing.remove();
+  container.insertBefore(bar, container.firstChild);
+  document.getElementById('enable-notif').addEventListener('click', requestNotificationPermission);
+}
+
+function renderReminderBanner() {
+  const container = document.getElementById('reminder-banner-container');
+  // Remove old banners (keep notif bar)
+  Array.from(container.querySelectorAll('.reminder-banner')).forEach(el => el.remove());
+
+  const now = new Date();
+  const upcoming = demos
+    .map(d => ({ demo: d, when: getDemoDateTime(d) }))
+    .filter(x => x.when && x.when > now)
+    .filter(x => (x.when - now) <= 60 * 60 * 1000) // within next 1 hour
+    .sort((a, b) => a.when - b.when);
+
+  upcoming.forEach(({ demo, when }) => {
+    const minsAway = Math.round((when - now) / 60000);
+    const banner = document.createElement('div');
+    banner.className = 'reminder-banner';
+    banner.innerHTML = `
+      <div class="reminder-icon">⏰</div>
+      <div class="reminder-text">
+        <div class="reminder-title">${escapeHtml(demo.childName)}'s class in ${minsAway} min</div>
+        <div class="reminder-meta">${escapeHtml(demo.parentName)} · ${formatTime(demo.demoTime)} · ${escapeHtml(demo.course || 'Demo')}</div>
+      </div>
+      <div class="reminder-actions">
+        ${demo.classLink ? `<a class="btn btn-primary btn-icon" href="${escapeHtml(demo.classLink)}" target="_blank" rel="noopener">Join Class</a>` : ''}
+        <button class="btn btn-secondary btn-icon" data-action="open-detail" data-id="${escapeHtml(demo.id)}">View Notes</button>
+      </div>
+    `;
+    container.appendChild(banner);
+  });
+
+  // Bind banner buttons
+  container.querySelectorAll('[data-action="open-detail"]').forEach(btn => {
+    btn.addEventListener('click', () => openDetail(btn.dataset.id));
+  });
+}
+
+function checkReminders() {
+  const t = loadTemplates();
+  const now = new Date();
+  demos.forEach(d => {
+    const when = getDemoDateTime(d);
+    if (!when) return;
+    if (['Closed-Won', 'Closed-Lost', 'No-show', 'Attended'].includes(d.status)) return;
+    const diffMs = when - now;
+
+    // 30 min reminder
+    if (t.reminder30m && diffMs > 0 && diffMs <= 30 * 60 * 1000 && diffMs > 25 * 60 * 1000) {
+      if (!wasNotified(d.id, '30m')) {
+        showNotification(
+          `⏰ ${d.childName}'s class in 30 mins`,
+          `${d.parentName} · ${formatTime(d.demoTime)} · ${d.course || 'Demo'}`
+        );
+        markNotified(d.id, '30m');
+      }
+    }
+
+    // 24 hour reminder (window: 23h-24h before)
+    if (t.reminder24h && diffMs > 23 * 60 * 60 * 1000 && diffMs <= 24 * 60 * 60 * 1000) {
+      if (!wasNotified(d.id, '24h')) {
+        showNotification(
+          `📅 Tomorrow: ${d.childName}'s class`,
+          `${formatDate(d.demoDate)} at ${formatTime(d.demoTime)} · ${d.parentName}`
+        );
+        markNotified(d.id, '24h');
+      }
+    }
+  });
+  renderReminderBanner();
+}
+
+// Run reminder check every 60 seconds
+setInterval(checkReminders, 60 * 1000);
+
 // ============ INIT ============
 function bindUI() {
   document.getElementById('search').addEventListener('input', renderDemos);
@@ -918,6 +1462,25 @@ function bindUI() {
   document.getElementById('detail-close').addEventListener('click', closeDetailModal);
   document.getElementById('signin-btn').addEventListener('click', handleSignIn);
   document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+
+  // Templates
+  document.getElementById('templates-btn').addEventListener('click', openTemplatesModal);
+  document.getElementById('templates-close').addEventListener('click', closeTemplatesModal);
+  document.getElementById('templates-cancel').addEventListener('click', closeTemplatesModal);
+  document.getElementById('templates-form').addEventListener('submit', handleTemplatesSubmit);
+  document.getElementById('templates-reset').addEventListener('click', resetTemplates);
+
+  // Token chips - click to copy
+  document.querySelectorAll('.template-tokens code').forEach(c => {
+    c.addEventListener('click', () => {
+      const token = c.dataset.token;
+      navigator.clipboard.writeText(token).then(() => {
+        const orig = c.textContent;
+        c.textContent = 'copied!';
+        setTimeout(() => c.textContent = orig, 1000);
+      });
+    });
+  });
 
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', e => {
