@@ -113,14 +113,27 @@
   .btn-ghost { background: transparent; color: var(--text-dim); }
   .btn-ghost:hover { color: var(--text); }
   .btn-icon { padding: 6px 10px; font-size: 12px; }
-  .storage-status {
+  .sync-status {
     font-size: 11px; color: var(--text-faint);
     font-family: 'JetBrains Mono', monospace;
     padding: 6px 10px; border-radius: 6px;
     background: var(--surface); border: 1px solid var(--border-soft);
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .storage-status.ok { color: var(--success); }
-  .storage-status.error { color: var(--danger); }
+  .sync-status .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-faint);
+  }
+  .sync-status.ok .dot { background: var(--success); }
+  .sync-status.syncing .dot { background: var(--warning); animation: pulse 1s infinite; }
+  .sync-status.error .dot { background: var(--danger); }
+  .sync-status.ok { color: var(--success); }
+  .sync-status.syncing { color: var(--warning); }
+  .sync-status.error { color: var(--danger); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
   .demos-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
     gap: 16px;
@@ -264,6 +277,24 @@
     margin-bottom: 8px; color: var(--text-dim);
   }
   .empty-state p { font-size: 14px; margin-bottom: 24px; }
+  .loading-screen {
+    position: fixed; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    background: var(--bg); z-index: 1000;
+    flex-direction: column; gap: 16px;
+  }
+  .loading-screen p {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim); font-size: 13px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @media (max-width: 640px) {
     .container { padding: 20px 16px 60px; }
     .brand h1 { font-size: 28px; }
@@ -275,14 +306,20 @@
 </style>
 </head>
 <body>
-<div class="container">
+
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner"></div>
+  <p id="loading-text">Connecting to cloud...</p>
+</div>
+
+<div class="container" id="main-app" style="display:none;">
   <header>
     <div class="brand">
       <h1>Demo <em>Tracker</em></h1>
-      <p>// trial classes & follow-ups</p>
+      <p>// cloud-synced across devices</p>
     </div>
     <div class="header-actions">
-      <span id="storage-status" class="storage-status">checking storage...</span>
+      <span id="sync-status" class="sync-status"><span class="dot"></span><span id="sync-text">connecting</span></span>
       <input type="file" id="import-file" accept=".json" style="display:none">
       <button class="btn btn-secondary" id="import-btn">Import</button>
       <button class="btn btn-secondary" id="export-btn">Export</button>
@@ -400,68 +437,51 @@
   </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- 🔥 PASTE YOUR FIREBASE CONFIG BELOW (between the lines)        -->
+<!-- ============================================================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ⬇️ REPLACE THIS WITH YOUR FIREBASE CONFIG FROM STEP 2 ⬇️
+const firebaseConfig = {
+  apiKey: "AIzaSyCqBTAM5BMQydBqgWPxXESGYEMOpPWHlUM",
+  authDomain: "fir-tracker-4ea86.firebaseapp.com",
+  projectId: "fir-tracker-4ea86",
+  storageBucket: "fir-tracker-4ea86.firebasestorage.app",
+  messagingSenderId: "953839533408",
+  appId: "1:953839533408:web:0becf72454ff56d95f7205"
+};
+// ⬆️ REPLACE WITH YOUR CONFIG ABOVE ⬆️
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.__firebase = { app, auth, db, signInAnonymously, onAuthStateChanged,
+  collection, doc, setDoc, deleteDoc, onSnapshot, getDocs };
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script>
 'use strict';
 
-// ============ STORAGE ============
-const STORAGE_KEY = 'demo-tracker-v2';
-let storageAvailable = false;
-
-function checkStorage() {
-  try {
-    const test = '__test__' + Date.now();
-    localStorage.setItem(test, test);
-    if (localStorage.getItem(test) !== test) throw new Error('readback failed');
-    localStorage.removeItem(test);
-    storageAvailable = true;
-    return true;
-  } catch (e) {
-    storageAvailable = false;
-    return false;
-  }
-}
-
-function loadDemos() {
-  if (!storageAvailable) return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveDemos(demos) {
-  if (!storageAvailable) {
-    alert('Browser storage is blocked. Data will not persist after refresh.\n\nTry: open in regular Chrome window (not incognito), and make sure you are accessing this via a real URL (not file://).');
-    return false;
-  }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(demos));
-    return true;
-  } catch (e) {
-    alert('Save failed: ' + e.message);
-    return false;
-  }
-}
-
-function updateStorageStatus() {
-  const el = document.getElementById('storage-status');
-  if (storageAvailable) {
-    el.textContent = '● storage ok';
-    el.className = 'storage-status ok';
-  } else {
-    el.textContent = '● storage blocked';
-    el.className = 'storage-status error';
-    el.title = 'Your browser is blocking localStorage. Data will not persist.';
-  }
-}
-
-// ============ STATE ============
 let demos = [];
 let activeFilter = 'all';
+let userId = null;
+let unsubscribe = null;
+
+// ============ SYNC STATUS ============
+function setSyncStatus(state, text) {
+  const el = document.getElementById('sync-status');
+  const txt = document.getElementById('sync-text');
+  el.className = 'sync-status ' + state;
+  txt.textContent = text;
+}
 
 // ============ HELPERS ============
 function escapeHtml(s) {
@@ -474,10 +494,7 @@ function formatDate(d) {
   if (!d) return '';
   const parts = d.split('-');
   if (parts.length !== 3) return d;
-  const yyyy = parts[0];
-  const mm = parts[1].padStart(2, '0');
-  const dd = parts[2].padStart(2, '0');
-  return dd + '/' + mm + '/' + yyyy;
+  return parts[2].padStart(2, '0') + '/' + parts[1].padStart(2, '0') + '/' + parts[0];
 }
 
 function formatTime(t) {
@@ -491,18 +508,63 @@ function formatTime(t) {
 
 function getTodayISO() {
   const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return yyyy + '-' + mm + '-' + dd;
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+// ============ CLOUD STORAGE ============
+async function saveDemo(demo) {
+  if (!userId) { alert('Not connected to cloud yet'); return false; }
+  setSyncStatus('syncing', 'saving');
+  try {
+    const fb = window.__firebase;
+    const ref = fb.doc(fb.db, 'users', userId, 'demos', demo.id);
+    await fb.setDoc(ref, demo);
+    setSyncStatus('ok', 'synced');
+    return true;
+  } catch (e) {
+    setSyncStatus('error', 'save failed');
+    alert('Failed to save: ' + e.message);
+    return false;
+  }
+}
+
+async function deleteFromCloud(id) {
+  if (!userId) return false;
+  setSyncStatus('syncing', 'deleting');
+  try {
+    const fb = window.__firebase;
+    const ref = fb.doc(fb.db, 'users', userId, 'demos', id);
+    await fb.deleteDoc(ref);
+    setSyncStatus('ok', 'synced');
+    return true;
+  } catch (e) {
+    setSyncStatus('error', 'delete failed');
+    alert('Failed to delete: ' + e.message);
+    return false;
+  }
+}
+
+function startListening() {
+  if (!userId) return;
+  const fb = window.__firebase;
+  const colRef = fb.collection(fb.db, 'users', userId, 'demos');
+  unsubscribe = fb.onSnapshot(colRef,
+    snapshot => {
+      demos = snapshot.docs.map(d => d.data());
+      setSyncStatus('ok', 'synced');
+      render();
+    },
+    err => {
+      console.error(err);
+      setSyncStatus('error', 'sync error');
+    }
+  );
 }
 
 // ============ RENDER ============
-function render() {
-  renderStats();
-  renderFilters();
-  renderDemos();
-}
+function render() { renderStats(); renderFilters(); renderDemos(); }
 
 function renderStats() {
   const today = getTodayISO();
@@ -543,12 +605,11 @@ function renderFilters() {
     { id: 'followups', label: 'Follow-ups' },
     { id: 'won', label: 'Closed Won' },
   ];
-  const html = tabs.map(t =>
+  document.getElementById('filters').innerHTML = tabs.map(t =>
     '<button class="filter-tab ' + (activeFilter === t.id ? 'active' : '') +
     '" data-filter="' + t.id + '">' + t.label +
     '<span class="count">' + counts[t.id] + '</span></button>'
   ).join('');
-  document.getElementById('filters').innerHTML = html;
 
   document.querySelectorAll('.filter-tab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -606,7 +667,6 @@ function renderDemos() {
       openDetail(card.dataset.id);
     });
   });
-
   document.querySelectorAll('.card-edit-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -649,7 +709,6 @@ function renderCard(d, today) {
   '</div>';
 }
 
-// ============ DETAIL VIEW ============
 function detailItem(label, value, full) {
   const isEmpty = !value || String(value).trim() === '';
   return '<div class="detail-item ' + (full ? 'full' : '') + '">' +
@@ -707,8 +766,7 @@ function openDetail(id) {
     '</div>';
 
   document.getElementById('detail-modal').classList.add('active');
-
-  document.getElementById('detail-delete').addEventListener('click', () => deleteDemo(d.id));
+  document.getElementById('detail-delete').addEventListener('click', () => deleteDemoNow(d.id));
   document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
   document.getElementById('detail-edit').addEventListener('click', () => openEdit(d.id));
 }
@@ -757,11 +815,10 @@ function closeFormModal() {
   document.getElementById('form-modal').classList.remove('active');
 }
 
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
   e.preventDefault();
   const id = document.getElementById('demo-id').value ||
     (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
-  const tv = fid => (document.getElementById(fid).value || '').trim();
 
   const demo = { id: id, updatedAt: new Date().toISOString() };
   Object.keys(FIELD_MAP).forEach(f => {
@@ -769,23 +826,14 @@ function handleFormSubmit(e) {
     if (el) demo[FIELD_MAP[f]] = (el.value || '').trim();
   });
 
-  const idx = demos.findIndex(d => d.id === id);
-  if (idx >= 0) demos[idx] = demo;
-  else demos.push(demo);
-
-  if (saveDemos(demos)) {
-    closeFormModal();
-    render();
-  }
+  const ok = await saveDemo(demo);
+  if (ok) closeFormModal();
 }
 
-function deleteDemo(id) {
+async function deleteDemoNow(id) {
   if (!confirm('Delete this demo? This cannot be undone.')) return;
-  demos = demos.filter(d => d.id !== id);
-  if (saveDemos(demos)) {
-    closeDetailModal();
-    render();
-  }
+  const ok = await deleteFromCloud(id);
+  if (ok) closeDetailModal();
 }
 
 // ============ IMPORT / EXPORT ============
@@ -802,32 +850,30 @@ function exportData() {
   URL.revokeObjectURL(url);
 }
 
-function importData(event) {
+async function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported)) throw new Error('Invalid format');
-      if (!confirm('Import ' + imported.length + ' demos? This will merge with your existing data.')) {
+      if (!confirm('Import ' + imported.length + ' demos to cloud? Existing demos with same ID will be overwritten.')) {
         event.target.value = '';
         return;
       }
-      const existingIds = new Set(demos.map(d => d.id));
+      setSyncStatus('syncing', 'importing');
       let added = 0;
-      imported.forEach(d => {
-        if (d && d.id && !existingIds.has(d.id)) {
-          demos.push(d);
+      for (const d of imported) {
+        if (d && d.id) {
+          await saveDemo(d);
           added++;
         }
-      });
-      if (saveDemos(demos)) {
-        render();
-        alert('Imported ' + added + ' new demos.');
       }
+      alert('Imported ' + added + ' demos to cloud.');
     } catch (err) {
       alert('Failed to import: ' + err.message);
+      setSyncStatus('error', 'import failed');
     }
     event.target.value = '';
   };
@@ -835,12 +881,7 @@ function importData(event) {
 }
 
 // ============ INIT ============
-function init() {
-  checkStorage();
-  updateStorageStatus();
-  demos = loadDemos();
-  render();
-
+function bindUI() {
   document.getElementById('search').addEventListener('input', renderDemos);
   document.getElementById('add-btn').addEventListener('click', openAddModal);
   document.getElementById('export-btn').addEventListener('click', exportData);
@@ -860,11 +901,37 @@ function init() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
+async function initAuth() {
+  const fb = window.__firebase;
+  document.getElementById('loading-text').textContent = 'Signing you in...';
+  try {
+    await fb.signInAnonymously(fb.auth);
+    fb.onAuthStateChanged(fb.auth, user => {
+      if (user) {
+        userId = user.uid;
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        setSyncStatus('syncing', 'loading');
+        startListening();
+      }
+    });
+  } catch (e) {
+    document.getElementById('loading-text').textContent = 'Connection failed: ' + e.message;
+  }
 }
+
+window.addEventListener('firebase-ready', () => {
+  bindUI();
+  initAuth();
+});
+
+// Fallback if Firebase fails to load
+setTimeout(() => {
+  if (!window.__firebase) {
+    document.getElementById('loading-text').textContent =
+      'Firebase config missing or invalid. Edit the HTML and paste your Firebase config.';
+  }
+}, 5000);
 </script>
 </body>
 </html>
