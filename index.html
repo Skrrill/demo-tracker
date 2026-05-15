@@ -1665,7 +1665,7 @@ function buildPrettyEmailHTML(d, curriculum) {
 </div>
 <!-- ============ EMAIL CONTENT ENDS HERE ============ -->
 
-<script>
+<` + `script>
   const EMAIL_SUBJECT = ${JSON.stringify(subject)};
 
   function showToast(text) {
@@ -1703,7 +1703,7 @@ function buildPrettyEmailHTML(d, curriculum) {
       navigator.clipboard.writeText(EMAIL_SUBJECT).catch(() => {});
     }
   });
-</script>
+</` + `script>
 
 </body>
 </html>`;
