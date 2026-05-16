@@ -500,11 +500,54 @@
             <option value="Closed-Lost">Closed-Lost</option>
           </select>
         </div>
-        <div class="form-group"><label for="demo-date">Date</label><input type="date" id="demo-date"></div>
-        <div class="form-group"><label for="demo-time">Time</label><input type="time" id="demo-time"></div>
+        <div class="form-group">
+          <label for="parent-timezone">Parent's Timezone *</label>
+          <select id="parent-timezone">
+            <option value="">— Select timezone —</option>
+            <optgroup label="🇮🇳 India">
+              <option value="Asia/Kolkata">India (IST) — same as yours</option>
+            </optgroup>
+            <optgroup label="🇺🇸 United States">
+              <option value="America/New_York">US East (EST/EDT) — NY, Boston, Atlanta, Miami</option>
+              <option value="America/Chicago">US Central (CST/CDT) — Chicago, Dallas, Houston</option>
+              <option value="America/Denver">US Mountain (MST/MDT) — Denver, Salt Lake City</option>
+              <option value="America/Phoenix">US Arizona (MST, no DST) — Phoenix</option>
+              <option value="America/Los_Angeles">US West (PST/PDT) — LA, Seattle, SF</option>
+              <option value="America/Anchorage">Alaska</option>
+              <option value="Pacific/Honolulu">Hawaii</option>
+            </optgroup>
+            <optgroup label="🇨🇦 Canada">
+              <option value="America/Toronto">Eastern Canada (EST/EDT) — Toronto, Ottawa, Montreal</option>
+              <option value="America/Winnipeg">Central Canada (CST/CDT) — Winnipeg</option>
+              <option value="America/Edmonton">Mountain Canada (MST/MDT) — Calgary, Edmonton</option>
+              <option value="America/Vancouver">Pacific Canada (PST/PDT) — Vancouver</option>
+              <option value="America/Halifax">Atlantic Canada (AST/ADT) — Halifax</option>
+              <option value="America/St_Johns">Newfoundland (NST/NDT)</option>
+            </optgroup>
+            <optgroup label="Or search by city">
+              <option value="custom">Type a city name below ↓</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="parent-city">City (optional)</label>
+          <input type="text" id="parent-city" placeholder="e.g., Chicago, Toronto">
+        </div>
+        <div class="form-group">
+          <label for="demo-date">Date <span style="color:var(--text-faint);text-transform:none;letter-spacing:normal;font-weight:400;">(in parent's time)</span></label>
+          <input type="date" id="demo-date">
+        </div>
+        <div class="form-group">
+          <label for="demo-time">Time <span style="color:var(--text-faint);text-transform:none;letter-spacing:normal;font-weight:400;">(in parent's time)</span></label>
+          <input type="time" id="demo-time">
+        </div>
+        <div class="form-group full">
+          <div id="time-conversion-preview" style="background:var(--bg);border:1px solid var(--border-soft);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;display:none;">
+            <span id="time-conversion-text"></span>
+          </div>
+        </div>
         <div class="form-group full"><label for="class-link">Class Link</label><input type="url" id="class-link" placeholder="https://..."></div>
         <div class="form-group"><label for="phone">Phone / WhatsApp</label><input type="text" id="phone"></div>
-        <div class="form-group"><label for="timezone">Timezone</label><input type="text" id="timezone" placeholder="e.g., EST, IST"></div>
 
         <div class="section-divider">Discovery Notes</div>
         <div class="form-group full"><label for="trigger">"Why now?" — what triggered interest</label><textarea id="trigger"></textarea></div>
@@ -722,6 +765,155 @@ function getTodayISO() {
     String(d.getDate()).padStart(2, '0');
 }
 
+// ============ TIMEZONE HELPERS ============
+const YOUR_TIMEZONE = 'Asia/Kolkata'; // Your local time
+
+function getTimezoneShortName(tz, date) {
+  if (!tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      timeZoneName: 'short'
+    });
+    const parts = fmt.formatToParts(date || new Date());
+    const tzPart = parts.find(p => p.type === 'timeZoneName');
+    return tzPart ? tzPart.value : '';
+  } catch (e) {
+    return tz;
+  }
+}
+
+function getTimezoneOffset(tz, date) {
+  // Returns minutes offset from UTC for a given timezone at a given date
+  try {
+    const d = date || new Date();
+    const utc = new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const local = new Date(d.toLocaleString('en-US', { timeZone: tz }));
+    return (local - utc) / 60000;
+  } catch (e) {
+    return 0;
+  }
+}
+
+// Convert a "wall clock" date+time in source timezone to a UTC instant
+function wallClockToUTC(dateStr, timeStr, tz) {
+  // dateStr: "2026-05-18", timeStr: "16:30", tz: "America/New_York"
+  if (!dateStr || !timeStr || !tz) return null;
+  try {
+    // Parse the input as if it's UTC, then adjust by the timezone offset
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const [hh, mm] = timeStr.split(':').map(Number);
+    // Build a date assuming UTC interpretation
+    const asUTC = new Date(Date.UTC(y, m - 1, d, hh, mm));
+    // Now find what the offset is for that timezone at that moment
+    const offsetMin = getTimezoneOffset(tz, asUTC);
+    // The actual UTC instant = asUTC - offsetMin
+    return new Date(asUTC.getTime() - offsetMin * 60000);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Format a UTC Date in a given timezone as "Mon, 18 May 2026 · 4:30 PM EDT"
+function formatInTimezone(utcDate, tz, opts) {
+  opts = opts || {};
+  if (!utcDate || !tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      weekday: opts.weekday ? 'short' : undefined,
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short'
+    });
+    return fmt.format(utcDate);
+  } catch (e) {
+    return utcDate.toISOString();
+  }
+}
+
+// Format date only "18/05/2026" in a given timezone
+function formatDateInTimezone(utcDate, tz) {
+  if (!utcDate || !tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: tz, day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+    return fmt.format(utcDate); // returns DD/MM/YYYY
+  } catch (e) {
+    return '';
+  }
+}
+
+// Format time only "4:30 PM EDT" in a given timezone
+function formatTimeInTimezone(utcDate, tz) {
+  if (!utcDate || !tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour: 'numeric', minute: '2-digit',
+      hour12: true, timeZoneName: 'short'
+    });
+    return fmt.format(utcDate);
+  } catch (e) {
+    return '';
+  }
+}
+
+// Build "9:00 AM EDT · 6:30 PM IST your time" string
+function formatDualTime(utcDate, parentTz) {
+  if (!utcDate) return '';
+  const parentTime = parentTz ? formatTimeInTimezone(utcDate, parentTz) : '';
+  const yourTime = formatTimeInTimezone(utcDate, YOUR_TIMEZONE);
+  if (parentTz === YOUR_TIMEZONE || !parentTz) return yourTime;
+  return parentTime + '  ·  ' + yourTime + ' your time';
+}
+
+function formatDualDate(utcDate, parentTz) {
+  if (!utcDate) return '';
+  const parentDate = parentTz ? formatDateInTimezone(utcDate, parentTz) : '';
+  const yourDate = formatDateInTimezone(utcDate, YOUR_TIMEZONE);
+  if (parentTz === YOUR_TIMEZONE || !parentTz) return yourDate;
+  // Same date in both timezones? just show once
+  if (parentDate === yourDate) return parentDate;
+  return parentDate + ' (' + yourDate + ' IST)';
+}
+
+// City to timezone mapping (common ones)
+const CITY_TZ = {
+  'new york': 'America/New_York', 'nyc': 'America/New_York', 'manhattan': 'America/New_York',
+  'boston': 'America/New_York', 'atlanta': 'America/New_York', 'miami': 'America/New_York',
+  'washington': 'America/New_York', 'dc': 'America/New_York', 'philadelphia': 'America/New_York',
+  'chicago': 'America/Chicago', 'dallas': 'America/Chicago', 'houston': 'America/Chicago',
+  'austin': 'America/Chicago', 'san antonio': 'America/Chicago', 'minneapolis': 'America/Chicago',
+  'denver': 'America/Denver', 'salt lake city': 'America/Denver', 'albuquerque': 'America/Denver',
+  'phoenix': 'America/Phoenix', 'tucson': 'America/Phoenix',
+  'los angeles': 'America/Los_Angeles', 'la': 'America/Los_Angeles',
+  'san francisco': 'America/Los_Angeles', 'sf': 'America/Los_Angeles',
+  'seattle': 'America/Los_Angeles', 'portland': 'America/Los_Angeles',
+  'san diego': 'America/Los_Angeles', 'las vegas': 'America/Los_Angeles',
+  'anchorage': 'America/Anchorage', 'honolulu': 'Pacific/Honolulu',
+  'toronto': 'America/Toronto', 'ottawa': 'America/Toronto', 'montreal': 'America/Toronto',
+  'winnipeg': 'America/Winnipeg',
+  'calgary': 'America/Edmonton', 'edmonton': 'America/Edmonton',
+  'vancouver': 'America/Vancouver', 'victoria': 'America/Vancouver',
+  'halifax': 'America/Halifax',
+  'london': 'Europe/London', 'manchester': 'Europe/London', 'birmingham': 'Europe/London',
+  'dubai': 'Asia/Dubai', 'abu dhabi': 'Asia/Dubai',
+  'singapore': 'Asia/Singapore',
+  'sydney': 'Australia/Sydney', 'melbourne': 'Australia/Melbourne',
+  'mumbai': 'Asia/Kolkata', 'delhi': 'Asia/Kolkata', 'bangalore': 'Asia/Kolkata',
+  'hyderabad': 'Asia/Kolkata', 'chennai': 'Asia/Kolkata', 'kolkata': 'Asia/Kolkata'
+};
+
+function lookupTimezoneByCity(city) {
+  if (!city) return null;
+  return CITY_TZ[city.toLowerCase().trim()] || null;
+}
+
 // ============ CLOUD STORAGE ============
 async function saveDemo(demo) {
   if (!userId) { alert('Not connected to cloud yet'); return false; }
@@ -889,9 +1081,28 @@ function renderCard(d, today) {
   const isToday = d.demoDate === today;
   const statusClass = (d.status || 'scheduled').toLowerCase().replace(/\s/g, '-');
   const cardClass = isToday ? 'today' : statusClass;
-  const formattedDate = d.demoDate ? formatDate(d.demoDate) : '—';
-  const formattedTime = d.demoTime ? formatTime(d.demoTime) : '';
-  const dateTime = formattedTime ? formattedDate + ' · ' + formattedTime : formattedDate;
+
+  // Build smart date/time display
+  let dateTime = '—';
+  const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+  if (d.demoDate && d.demoTime) {
+    const utc = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
+    if (utc) {
+      const parentTime = formatTimeInTimezone(utc, parentTz);
+      const parentDate = formatDateInTimezone(utc, parentTz);
+      if (parentTz === YOUR_TIMEZONE) {
+        dateTime = parentDate + ' · ' + parentTime;
+      } else {
+        const yourTime = formatTimeInTimezone(utc, YOUR_TIMEZONE);
+        dateTime = parentDate + ' · ' + parentTime + '  /  ' + yourTime + ' IST';
+      }
+    } else {
+      dateTime = formatDate(d.demoDate) + ' · ' + formatTime(d.demoTime);
+    }
+  } else if (d.demoDate) {
+    dateTime = formatDate(d.demoDate);
+  }
+
   const followupAlert = d.followupDate && d.followupDate <= today &&
     !['Closed-Won', 'Closed-Lost'].includes(d.status);
 
@@ -931,6 +1142,27 @@ function openDetail(id) {
   const d = demos.find(x => x.id === id);
   if (!d) return;
   const body = document.getElementById('detail-body');
+  // Compute timezone-aware date/time for display
+  const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+  let detailDate = '';
+  let detailTime = '';
+  let detailYourTime = '';
+  if (d.demoDate && d.demoTime) {
+    const utc = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
+    if (utc) {
+      detailDate = formatDateInTimezone(utc, parentTz);
+      detailTime = formatTimeInTimezone(utc, parentTz);
+      if (parentTz !== YOUR_TIMEZONE) {
+        detailYourTime = formatDateInTimezone(utc, YOUR_TIMEZONE) + ' · ' + formatTimeInTimezone(utc, YOUR_TIMEZONE);
+      }
+    }
+  } else {
+    detailDate = d.demoDate ? formatDate(d.demoDate) : '';
+    detailTime = d.demoTime ? formatTime(d.demoTime) : '';
+  }
+
+  const tzLabel = d.parentTimezone ? (' (' + d.parentTimezone.split('/').pop().replace(/_/g, ' ') + ')') : '';
+
   body.innerHTML =
     '<h2>' + escapeHtml(d.childName) +
     ' <span style="font-size:14px;color:var(--text-dim);font-family:\'JetBrains Mono\',monospace;">/ ' +
@@ -939,9 +1171,11 @@ function openDetail(id) {
       detailItem('Status', d.status) + detailItem('Course', d.course) +
       detailItem('Grade', d.grade + (getCurriculumForGrade(d.grade, d.course) ? ' → ' + getCurriculumForGrade(d.grade, d.course).label : '')) +
       detailItem('Age', d.age) +
-      detailItem('Date', d.demoDate ? formatDate(d.demoDate) : '') +
-      detailItem('Time', d.demoTime ? formatTime(d.demoTime) : '') +
-      detailItem('Phone', d.phone) + detailItem('Timezone', d.timezone) +
+      detailItem('Date' + tzLabel, detailDate) +
+      detailItem('Time' + tzLabel, detailTime) +
+      (detailYourTime ? detailItem('Your IST Time', detailYourTime, true) : '') +
+      detailItem('Phone', d.phone) +
+      detailItem('Parent City', d.parentCity) +
       (d.classLink ? '<div class="detail-item full"><div class="label">Class Link</div><div class="value"><a class="link-button" href="' +
         escapeHtml(d.classLink) + '" target="_blank" rel="noopener">' + escapeHtml(d.classLink) + '</a></div></div>' : '') +
     '</div></div>' +
@@ -1020,7 +1254,8 @@ const FIELD_MAP = {
   'parent-name': 'parentName', 'child-name': 'childName',
   'grade': 'grade', 'age': 'age', 'course': 'course', 'status': 'status',
   'demo-date': 'demoDate', 'demo-time': 'demoTime',
-  'class-link': 'classLink', 'phone': 'phone', 'timezone': 'timezone',
+  'parent-timezone': 'parentTimezone', 'parent-city': 'parentCity',
+  'class-link': 'classLink', 'phone': 'phone',
   'trigger': 'trigger', 'personality': 'personality',
   'dream-project': 'dreamProject', 'parent-vision': 'parentVision',
   'pain-point': 'painPoint', 'preferred-schedule': 'preferredSchedule',
@@ -1217,11 +1452,31 @@ function saveTemplates(t) {
 function fillTemplate(template, demo) {
   if (!template) return '';
   const curriculum = getCurriculumForGrade(demo.grade, demo.course);
+
+  // Compute parent-timezone-aware date/time
+  const parentTz = demo.parentTimezone || YOUR_TIMEZONE;
+  let dateStr = '';
+  let timeStr = '';
+  let yourTimeStr = '';
+  if (demo.demoDate && demo.demoTime) {
+    const utc = wallClockToUTC(demo.demoDate, demo.demoTime, parentTz);
+    if (utc) {
+      dateStr = formatDateInTimezone(utc, parentTz);
+      timeStr = formatTimeInTimezone(utc, parentTz);
+      yourTimeStr = formatTimeInTimezone(utc, YOUR_TIMEZONE);
+    }
+  } else if (demo.demoDate) {
+    dateStr = formatDate(demo.demoDate);
+  } else if (demo.demoTime) {
+    timeStr = formatTime(demo.demoTime);
+  }
+
   const tokens = {
     '{child_name}': demo.childName || '',
     '{parent_name}': demo.parentName || '',
-    '{date}': demo.demoDate ? formatDate(demo.demoDate) : '',
-    '{time}': demo.demoTime ? formatTime(demo.demoTime) : '',
+    '{date}': dateStr,
+    '{time}': timeStr,
+    '{your_time}': yourTimeStr,
     '{course}': demo.course || '',
     '{class_link}': demo.classLink || '',
     '{grade}': demo.grade || '',
@@ -1379,8 +1634,19 @@ function buildPrettyEmailHTML(d, curriculum, kind) {
   const childName = safe(d.childName || 'your child');
   const grade = safe(d.grade || '');
   const course = safe(d.course || 'Trial');
-  const dateStr = d.demoDate ? safe(formatDate(d.demoDate)) : 'To be confirmed';
-  const timeStr = d.demoTime ? safe(formatTime(d.demoTime)) : 'To be confirmed';
+
+  // Compute parent-timezone-aware date/time strings
+  const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+  let dateStr = 'To be confirmed';
+  let timeStr = 'To be confirmed';
+  if (d.demoDate && d.demoTime) {
+    const utc = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
+    if (utc) {
+      dateStr = safe(formatDateInTimezone(utc, parentTz));
+      timeStr = safe(formatTimeInTimezone(utc, parentTz));
+    }
+  }
+
   const classLink = safe(d.classLink || 'https://champ.brightchamps.com');
   const curriculumLink = curriculum ? `https://drive.google.com/file/d/${curriculum.fileId}/view` : '';
   const curriculumName = curriculum ? safe(curriculum.label) : '';
@@ -1827,9 +2093,10 @@ function actionAddToGoogleCalendar(demoId) {
     return;
   }
 
-  const [y, m, day] = d.demoDate.split('-').map(Number);
-  const [hh, mm] = d.demoTime.split(':').map(Number);
-  const start = new Date(y, m - 1, day, hh, mm);
+  // Convert the wall-clock time in parent's timezone to a real UTC instant
+  const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+  const start = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
+  if (!start) { alert('Could not parse date/time.'); return; }
   const end = new Date(start.getTime() + 60 * 60 * 1000);
 
   const fmtUTC = dt => {
@@ -1838,11 +2105,15 @@ function actionAddToGoogleCalendar(demoId) {
       pad(dt.getUTCHours()) + pad(dt.getUTCMinutes()) + '00Z';
   };
 
+  const parentTimeStr = formatTimeInTimezone(start, parentTz);
+  const yourTimeStr = formatTimeInTimezone(start, YOUR_TIMEZONE);
+
   const title = `${d.course || 'Demo'} Trial: ${d.childName} (${d.parentName})`;
   const details = [
     `Parent: ${d.parentName}`,
     `Child: ${d.childName}${d.grade ? ' (Grade ' + d.grade + ')' : ''}`,
     `Phone: ${d.phone || 'N/A'}`,
+    parentTz !== YOUR_TIMEZONE ? `Parent time: ${parentTimeStr} | Your time: ${yourTimeStr}` : '',
     d.classLink ? `Join: ${d.classLink}` : '',
     d.trigger ? `\nWhy now: ${d.trigger}` : '',
     d.dreamProject ? `\nDream project: ${d.dreamProject}` : '',
@@ -1866,17 +2137,24 @@ function actionAddToCalendar(demoId) {
     return;
   }
 
-  // Build ICS file
-  const [y, m, day] = d.demoDate.split('-').map(Number);
-  const [hh, mm] = d.demoTime.split(':').map(Number);
-  const start = new Date(y, m - 1, day, hh, mm);
-  const end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour
+  // Convert wall-clock time in parent's timezone to real UTC instant
+  const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+  const start = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
+  if (!start) { alert('Could not parse date/time.'); return; }
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-  const fmt = dt => {
+  // Format as UTC in ICS format (YYYYMMDDTHHMMSSZ)
+  const fmtUTC = dt => {
     const pad = n => String(n).padStart(2, '0');
-    return dt.getFullYear() + pad(dt.getMonth() + 1) + pad(dt.getDate()) + 'T' +
-      pad(dt.getHours()) + pad(dt.getMinutes()) + '00';
+    return dt.getUTCFullYear() + pad(dt.getUTCMonth() + 1) + pad(dt.getUTCDate()) + 'T' +
+      pad(dt.getUTCHours()) + pad(dt.getUTCMinutes()) + '00Z';
   };
+
+  const parentTimeStr = formatTimeInTimezone(start, parentTz);
+  const yourTimeStr = formatTimeInTimezone(start, YOUR_TIMEZONE);
+  const tzNote = (parentTz !== YOUR_TIMEZONE)
+    ? `\\nParent time: ${parentTimeStr}\\nYour time: ${yourTimeStr}`
+    : '';
 
   const summary = `${d.course || 'Demo'} Trial: ${d.childName} (${d.parentName})`;
   const description = [
@@ -1887,7 +2165,7 @@ function actionAddToCalendar(demoId) {
     d.trigger ? `\\nWhy now: ${d.trigger}` : '',
     d.dreamProject ? `\\nDream project: ${d.dreamProject}` : '',
     d.parentVision ? `\\nVision: ${d.parentVision}` : ''
-  ].filter(Boolean).join('\\n');
+  ].filter(Boolean).join('\\n') + tzNote;
 
   const ics = [
     'BEGIN:VCALENDAR',
@@ -1895,9 +2173,9 @@ function actionAddToCalendar(demoId) {
     'PRODID:-//Demo Tracker//EN',
     'BEGIN:VEVENT',
     `UID:${d.id}@demo-tracker`,
-    `DTSTAMP:${fmt(new Date())}`,
-    `DTSTART:${fmt(start)}`,
-    `DTEND:${fmt(end)}`,
+    `DTSTAMP:${fmtUTC(new Date())}`,
+    `DTSTART:${fmtUTC(start)}`,
+    `DTEND:${fmtUTC(end)}`,
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description}`,
     'BEGIN:VALARM',
@@ -1966,9 +2244,8 @@ function showNotification(title, body) {
 
 function getDemoDateTime(d) {
   if (!d.demoDate || !d.demoTime) return null;
-  const [y, m, day] = d.demoDate.split('-').map(Number);
-  const [hh, mm] = d.demoTime.split(':').map(Number);
-  return new Date(y, m - 1, day, hh, mm);
+  const tz = d.parentTimezone || YOUR_TIMEZONE;
+  return wallClockToUTC(d.demoDate, d.demoTime, tz);
 }
 
 function renderNotificationBar() {
@@ -2003,13 +2280,20 @@ function renderReminderBanner() {
 
   upcoming.forEach(({ demo, when }) => {
     const minsAway = Math.round((when - now) / 60000);
+    const parentTz = demo.parentTimezone || YOUR_TIMEZONE;
+    const parentTime = formatTimeInTimezone(when, parentTz);
+    const yourTime = formatTimeInTimezone(when, YOUR_TIMEZONE);
+    const timeDisplay = (parentTz !== YOUR_TIMEZONE)
+      ? parentTime + ' parent / ' + yourTime + ' you'
+      : yourTime;
+
     const banner = document.createElement('div');
     banner.className = 'reminder-banner';
     banner.innerHTML = `
       <div class="reminder-icon">⏰</div>
       <div class="reminder-text">
         <div class="reminder-title">${escapeHtml(demo.childName)}'s class in ${minsAway} min</div>
-        <div class="reminder-meta">${escapeHtml(demo.parentName)} · ${formatTime(demo.demoTime)} · ${escapeHtml(demo.course || 'Demo')}</div>
+        <div class="reminder-meta">${escapeHtml(demo.parentName)} · ${escapeHtml(timeDisplay)} · ${escapeHtml(demo.course || 'Demo')}</div>
       </div>
       <div class="reminder-actions">
         ${demo.classLink ? `<a class="btn btn-primary btn-icon" href="${escapeHtml(demo.classLink)}" target="_blank" rel="noopener">Join Class</a>` : ''}
@@ -2033,13 +2317,19 @@ function checkReminders() {
     if (!when) return;
     if (['Closed-Won', 'Closed-Lost', 'No-show', 'Attended'].includes(d.status)) return;
     const diffMs = when - now;
+    const parentTz = d.parentTimezone || YOUR_TIMEZONE;
+    const parentTime = formatTimeInTimezone(when, parentTz);
+    const yourTime = formatTimeInTimezone(when, YOUR_TIMEZONE);
+    const timeNote = (parentTz !== YOUR_TIMEZONE)
+      ? `${parentTime} parent · ${yourTime} you`
+      : yourTime;
 
     // 30 min reminder
     if (t.reminder30m && diffMs > 0 && diffMs <= 30 * 60 * 1000 && diffMs > 25 * 60 * 1000) {
       if (!wasNotified(d.id, '30m')) {
         showNotification(
           `⏰ ${d.childName}'s class in 30 mins`,
-          `${d.parentName} · ${formatTime(d.demoTime)} · ${d.course || 'Demo'}`
+          `${d.parentName} · ${timeNote} · ${d.course || 'Demo'}`
         );
         markNotified(d.id, '30m');
       }
@@ -2048,9 +2338,10 @@ function checkReminders() {
     // 24 hour reminder (window: 23h-24h before)
     if (t.reminder24h && diffMs > 23 * 60 * 60 * 1000 && diffMs <= 24 * 60 * 60 * 1000) {
       if (!wasNotified(d.id, '24h')) {
+        const parentDate = formatDateInTimezone(when, parentTz);
         showNotification(
           `📅 Tomorrow: ${d.childName}'s class`,
-          `${formatDate(d.demoDate)} at ${formatTime(d.demoTime)} · ${d.parentName}`
+          `${parentDate} at ${timeNote} · ${d.parentName}`
         );
         markNotified(d.id, '24h');
       }
@@ -2078,6 +2369,26 @@ function bindUI() {
   document.getElementById('signin-btn').addEventListener('click', handleSignIn);
   document.getElementById('signout-btn').addEventListener('click', handleSignOut);
 
+  // Live time conversion preview
+  ['demo-date', 'demo-time', 'parent-timezone'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateTimeConversionPreview);
+    document.getElementById(id).addEventListener('input', updateTimeConversionPreview);
+  });
+
+  // City → timezone auto-detect
+  document.getElementById('parent-city').addEventListener('blur', () => {
+    const city = document.getElementById('parent-city').value.trim();
+    const tz = lookupTimezoneByCity(city);
+    if (tz) {
+      const select = document.getElementById('parent-timezone');
+      const exists = Array.from(select.options).some(o => o.value === tz);
+      if (exists) {
+        select.value = tz;
+        updateTimeConversionPreview();
+      }
+    }
+  });
+
   // Templates
   document.getElementById('templates-btn').addEventListener('click', openTemplatesModal);
   document.getElementById('templates-close').addEventListener('click', closeTemplatesModal);
@@ -2102,6 +2413,36 @@ function bindUI() {
       if (e.target === o) o.classList.remove('active');
     });
   });
+}
+
+function updateTimeConversionPreview() {
+  const date = document.getElementById('demo-date').value;
+  const time = document.getElementById('demo-time').value;
+  const tz = document.getElementById('parent-timezone').value;
+  const preview = document.getElementById('time-conversion-preview');
+  const text = document.getElementById('time-conversion-text');
+
+  if (!date || !time || !tz || tz === 'custom') {
+    preview.style.display = 'none';
+    return;
+  }
+
+  const utc = wallClockToUTC(date, time, tz);
+  if (!utc) {
+    preview.style.display = 'none';
+    return;
+  }
+
+  const parentLine = formatDateInTimezone(utc, tz) + ' · ' + formatTimeInTimezone(utc, tz);
+  if (tz === YOUR_TIMEZONE) {
+    text.innerHTML = '<span style="color:var(--success);">●</span> ' + parentLine;
+  } else {
+    const yourLine = formatDateInTimezone(utc, YOUR_TIMEZONE) + ' · ' + formatTimeInTimezone(utc, YOUR_TIMEZONE);
+    text.innerHTML =
+      '<div style="color:var(--text);"><strong>Parent sees:</strong> ' + parentLine + '</div>' +
+      '<div style="color:var(--accent);margin-top:4px;"><strong>You:</strong> ' + yourLine + '</div>';
+  }
+  preview.style.display = 'block';
 }
 
 async function initAuth() {
