@@ -655,10 +655,24 @@
           <textarea id="tpl-email-body" rows="8"></textarea>
         </div>
 
-        <div class="section-divider">SMS (for Aircall - US parents)</div>
+        <div class="section-divider">SMS for Aircall — US Parents (Smart-Selected)</div>
+        <div class="form-group full" style="margin-bottom:4px;">
+          <p style="font-size:11px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;margin:0 0 8px;line-height:1.5;">
+            The tracker auto-picks the right template based on how soon the demo is.<br>
+            Each SMS should stay under 160 characters to avoid being split into multiple messages.
+          </p>
+        </div>
         <div class="form-group full">
-          <label for="tpl-sms">Template</label>
+          <label for="tpl-sms">Default — future demo (more than 24h away)</label>
           <textarea id="tpl-sms" rows="3"></textarea>
+        </div>
+        <div class="form-group full">
+          <label for="tpl-sms-today">Same-day reminder (within 24h)</label>
+          <textarea id="tpl-sms-today" rows="3"></textarea>
+        </div>
+        <div class="form-group full">
+          <label for="tpl-sms-imminent">Imminent (less than 1h before)</label>
+          <textarea id="tpl-sms-imminent" rows="3"></textarea>
         </div>
 
         <div class="section-divider">Settings</div>
@@ -844,6 +858,32 @@ function formatDateInTimezone(utcDate, tz) {
       timeZone: tz, day: '2-digit', month: '2-digit', year: 'numeric'
     });
     return fmt.format(utcDate); // returns DD/MM/YYYY
+  } catch (e) {
+    return '';
+  }
+}
+
+// Format date for emails (parent-facing): "May 16, 2026"
+function formatDateForEmail(utcDate, tz) {
+  if (!utcDate || !tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, month: 'long', day: 'numeric', year: 'numeric'
+    });
+    return fmt.format(utcDate); // returns "May 16, 2026"
+  } catch (e) {
+    return '';
+  }
+}
+
+// Format time for emails (parent-facing): "9:30 AM" (no timezone abbreviation)
+function formatTimeForEmail(utcDate, tz) {
+  if (!utcDate || !tz) return '';
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    return fmt.format(utcDate); // returns "9:30 AM"
   } catch (e) {
     return '';
   }
@@ -1404,7 +1444,9 @@ const DEFAULT_TEMPLATES = {
   wa30m: `Hi {parent_name}, quick heads up — {child_name}'s class starts in *30 minutes* at *{time}*.\n\n🔗 Join here: {class_link}\n\nGet {child_name} settled in a quiet spot, and we'll see you both shortly.\n\n— Rituraj`,
   emailSubject: `Your trial class is confirmed — see you soon, {parent_name}!`,
   emailBody: `Hi {parent_name},\n\nGreat news — {child_name}'s {course} trial class is confirmed. Here's everything you need:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  SESSION DETAILS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📅  Date:     {date}\n🕐  Time:     {time}\n👤  Student:  {child_name} (Grade {grade})\n📚  Course:   {course}\n\n🔗  Join here: {class_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  WHAT TO EXPECT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🎯  Hands-on live class with an expert\n👨‍👩‍👧  Your presence makes a real difference — sit in if you can\n💬  Personal 1:1 counselling right after the session\n🎁  Exclusive on-call scholarship for families who enroll today\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  BEFORE THE CLASS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✓  Laptop or PC ready\n✓  Stable internet connection\n✓  Join 5 minutes early to test audio/video\n✓  A quiet space where {child_name} can focus\n\n📘 {curriculum_name} Curriculum:\n{curriculum_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAny questions before we meet? Just reply to this email — I'm here.\n\nLooking forward to it.\n\nRituraj\nAcademic Counsellor, BrightCHAMPS\nbrightchamps.com\n\nSTEM Accredited · Harvard Collaboration · MIT/IIT/IIM Mentors\nLIVE 1:1 Smart Technology Classes · Grades 1–12`,
-  sms: `Hi {parent_name}, reminder: {child_name}'s class is at {time} today. Join: {class_link} - Rituraj, BrightCHAMPS`,
+  sms: `Hi {parent_name}, reminder: {child_name}'s {course} class is on {date} at {time}. Join: {class_link} - Rituraj, BrightCHAMPS`,
+  smsToday: `Hi {parent_name}, {child_name}'s {course} class is today at {time}. Join: {class_link} - Rituraj, BrightCHAMPS`,
+  smsImminent: `Hi {parent_name}, {child_name}'s class starts in 30 mins at {time}. Join now: {class_link} - Rituraj`,
   reminder30m: true,
   reminder24h: true
 };
@@ -1415,12 +1457,10 @@ function loadTemplates() {
   try {
     const raw = localStorage.getItem(TEMPLATE_KEY);
     if (!raw) {
-      // Migrate from v1 if exists, but use new defaults for email
       const oldRaw = localStorage.getItem('demo-tracker-templates-v1');
       if (oldRaw) {
         try {
           const old = JSON.parse(oldRaw);
-          // Keep their custom WhatsApp/SMS, but force-update email to new design
           return {
             ...DEFAULT_TEMPLATES,
             wa24h: old.wa24h || DEFAULT_TEMPLATES.wa24h,
@@ -1433,6 +1473,7 @@ function loadTemplates() {
       }
       return { ...DEFAULT_TEMPLATES };
     }
+    // Merge with defaults so new keys (smsToday, smsImminent) get filled in
     return { ...DEFAULT_TEMPLATES, ...JSON.parse(raw) };
   } catch (e) {
     return { ...DEFAULT_TEMPLATES };
@@ -1453,7 +1494,7 @@ function fillTemplate(template, demo) {
   if (!template) return '';
   const curriculum = getCurriculumForGrade(demo.grade, demo.course);
 
-  // Compute parent-timezone-aware date/time
+  // Compute parent-timezone-aware date/time in clean, parent-friendly format
   const parentTz = demo.parentTimezone || YOUR_TIMEZONE;
   let dateStr = '';
   let timeStr = '';
@@ -1461,8 +1502,9 @@ function fillTemplate(template, demo) {
   if (demo.demoDate && demo.demoTime) {
     const utc = wallClockToUTC(demo.demoDate, demo.demoTime, parentTz);
     if (utc) {
-      dateStr = formatDateInTimezone(utc, parentTz);
-      timeStr = formatTimeInTimezone(utc, parentTz);
+      // Parent-facing format: "May 16, 2026" and "9:30 AM" (no timezone abbrev)
+      dateStr = formatDateForEmail(utc, parentTz);
+      timeStr = formatTimeForEmail(utc, parentTz);
       yourTimeStr = formatTimeInTimezone(utc, YOUR_TIMEZONE);
     }
   } else if (demo.demoDate) {
@@ -1497,6 +1539,8 @@ function openTemplatesModal() {
   document.getElementById('tpl-email-subject').value = t.emailSubject;
   document.getElementById('tpl-email-body').value = t.emailBody;
   document.getElementById('tpl-sms').value = t.sms;
+  document.getElementById('tpl-sms-today').value = t.smsToday || DEFAULT_TEMPLATES.smsToday;
+  document.getElementById('tpl-sms-imminent').value = t.smsImminent || DEFAULT_TEMPLATES.smsImminent;
   document.getElementById('reminder-30m-enabled').value = String(t.reminder30m !== false);
   document.getElementById('reminder-24h-enabled').value = String(t.reminder24h !== false);
   document.getElementById('templates-modal').classList.add('active');
@@ -1514,6 +1558,8 @@ function handleTemplatesSubmit(e) {
     emailSubject: document.getElementById('tpl-email-subject').value,
     emailBody: document.getElementById('tpl-email-body').value,
     sms: document.getElementById('tpl-sms').value,
+    smsToday: document.getElementById('tpl-sms-today').value,
+    smsImminent: document.getElementById('tpl-sms-imminent').value,
     reminder30m: document.getElementById('reminder-30m-enabled').value === 'true',
     reminder24h: document.getElementById('reminder-24h-enabled').value === 'true'
   };
@@ -1635,15 +1681,16 @@ function buildPrettyEmailHTML(d, curriculum, kind) {
   const grade = safe(d.grade || '');
   const course = safe(d.course || 'Trial');
 
-  // Compute parent-timezone-aware date/time strings
+  // Compute parent-timezone-aware date/time strings (parent-friendly format)
   const parentTz = d.parentTimezone || YOUR_TIMEZONE;
   let dateStr = 'To be confirmed';
   let timeStr = 'To be confirmed';
   if (d.demoDate && d.demoTime) {
     const utc = wallClockToUTC(d.demoDate, d.demoTime, parentTz);
     if (utc) {
-      dateStr = safe(formatDateInTimezone(utc, parentTz));
-      timeStr = safe(formatTimeInTimezone(utc, parentTz));
+      // Parent-facing: "May 16, 2026" and "9:30 AM" — no timezone abbrev
+      dateStr = safe(formatDateForEmail(utc, parentTz));
+      timeStr = safe(formatTimeForEmail(utc, parentTz));
     }
   }
 
@@ -2075,11 +2122,32 @@ function actionCopySMS(demoId) {
   const d = demos.find(x => x.id === demoId);
   if (!d) return;
   const t = loadTemplates();
-  const msg = fillTemplate(t.sms, d);
+
+  // Smart template selection based on time-to-demo
+  let tpl = t.sms; // default: future demo
+  const when = getDemoDateTime(d);
+  if (when) {
+    const diffMs = when - new Date();
+    const mins = diffMs / 60000;
+    if (mins > 0 && mins <= 60) {
+      // Less than 1 hour away → imminent
+      tpl = t.smsImminent || t.sms;
+    } else if (mins > 60 && mins <= 24 * 60) {
+      // Today (within 24h) → today format
+      tpl = t.smsToday || t.sms;
+    }
+  }
+
+  const msg = fillTemplate(tpl, d);
   const phone = cleanPhone(d.phone);
   const text = phone ? `${phone}\n\n${msg}` : msg;
+
+  // Warn if message is over 160 chars (US carriers split it into multiple SMS)
+  const charsOver = msg.length - 160;
+  const warningNote = charsOver > 0 ? `\n\n⚠️ Message is ${msg.length} chars (${charsOver} over the 160 SMS limit). Will send as ${Math.ceil(msg.length / 153)} SMS segments.` : '';
+
   navigator.clipboard.writeText(text).then(() => {
-    alert('Copied to clipboard!\n\nPaste into Aircall to send SMS.');
+    alert(`Copied to clipboard! (${msg.length} chars)\n\nPaste into Aircall to send SMS.${warningNote}`);
   }).catch(() => {
     prompt('Copy this:', text);
   });
