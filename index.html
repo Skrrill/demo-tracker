@@ -974,7 +974,9 @@ function openDetail(id) {
       '<div class="action-grid">' +
         (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
         (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
-        '<button class="action-btn" data-act="pretty-email">✨ Pretty Email (Copy + Paste)</button>' +
+        '<button class="action-btn" data-act="pretty-email">✨ Pretty Email · Confirmation</button>' +
+        '<button class="action-btn" data-act="pretty-email-24h">✨ Pretty Email · 24h before</button>' +
+        '<button class="action-btn" data-act="pretty-email-30m">✨ Pretty Email · 30m before</button>' +
         '<button class="action-btn" data-act="email">📧 Quick Email (plain text)</button>' +
         (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
         (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="gcal">📅 Google Calendar</button>' : '') +
@@ -999,7 +1001,9 @@ function openDetail(id) {
       if (act === 'wa24') actionWhatsApp(d.id, '24h');
       else if (act === 'wa30') actionWhatsApp(d.id, '30m');
       else if (act === 'email') actionEmail(d.id);
-      else if (act === 'pretty-email') actionPrettyEmail(d.id);
+      else if (act === 'pretty-email') actionPrettyEmail(d.id, 'confirmation');
+      else if (act === 'pretty-email-24h') actionPrettyEmail(d.id, '24h');
+      else if (act === 'pretty-email-30m') actionPrettyEmail(d.id, '30m');
       else if (act === 'sms') actionCopySMS(d.id);
       else if (act === 'cal') actionAddToCalendar(d.id);
       else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
@@ -1161,8 +1165,8 @@ function getDirectDownloadLink(fileId) {
 }
 
 const DEFAULT_TEMPLATES = {
-  wa24h: `Hi {parent_name},\n\nJust a quick reminder — {child_name}'s {course} trial class is tomorrow at {time}.\n\nLooking forward to it!\n\n- Rituraj`,
-  wa30m: `Hi {parent_name}, just a quick reminder — {child_name}'s class starts in 30 minutes at {time}.\n\nJoin link: {class_link}\n\nSee you soon!`,
+  wa24h: `Hi {parent_name} 👋\n\nJust a quick reminder — {child_name}'s *{course} trial class* is *tomorrow*.\n\n📅  {date}\n🕐  {time}\n\nA few small things to keep handy:\n• Laptop or PC ready\n• Stable internet\n• A quiet spot to focus\n\nIf possible, please sit in with {child_name} — it really helps. Looking forward to it!\n\n— Rituraj, BrightCHAMPS`,
+  wa30m: `Hi {parent_name}, quick heads up — {child_name}'s class starts in *30 minutes* at *{time}*.\n\n🔗 Join here: {class_link}\n\nGet {child_name} settled in a quiet spot, and we'll see you both shortly.\n\n— Rituraj`,
   emailSubject: `Your trial class is confirmed — see you soon, {parent_name}!`,
   emailBody: `Hi {parent_name},\n\nGreat news — {child_name}'s {course} trial class is confirmed. Here's everything you need:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  SESSION DETAILS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📅  Date:     {date}\n🕐  Time:     {time}\n👤  Student:  {child_name} (Grade {grade})\n📚  Course:   {course}\n\n🔗  Join here: {class_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  WHAT TO EXPECT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🎯  Hands-on live class with an expert\n👨‍👩‍👧  Your presence makes a real difference — sit in if you can\n💬  Personal 1:1 counselling right after the session\n🎁  Exclusive on-call scholarship for families who enroll today\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  BEFORE THE CLASS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✓  Laptop or PC ready\n✓  Stable internet connection\n✓  Join 5 minutes early to test audio/video\n✓  A quiet space where {child_name} can focus\n\n📘 {curriculum_name} Curriculum:\n{curriculum_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAny questions before we meet? Just reply to this email — I'm here.\n\nLooking forward to it.\n\nRituraj\nAcademic Counsellor, BrightCHAMPS\nbrightchamps.com\n\nSTEM Accredited · Harvard Collaboration · MIT/IIT/IIM Mentors\nLIVE 1:1 Smart Technology Classes · Grades 1–12`,
   sms: `Hi {parent_name}, reminder: {child_name}'s class is at {time} today. Join: {class_link} - Rituraj, BrightCHAMPS`,
@@ -1306,7 +1310,8 @@ function actionEmail(demoId) {
   window.open(url, '_blank');
 }
 
-function actionPrettyEmail(demoId) {
+function actionPrettyEmail(demoId, kind) {
+  kind = kind || 'confirmation';
   const d = demos.find(x => x.id === demoId);
   if (!d) return;
   if (!d.parentName || !d.childName) {
@@ -1315,8 +1320,8 @@ function actionPrettyEmail(demoId) {
   }
 
   const curriculum = getCurriculumForGrade(d.grade, d.course);
-  const html = buildPrettyEmailHTML(d, curriculum);
-  const subject = fillTemplate(loadTemplates().emailSubject, d);
+  const html = buildPrettyEmailHTML(d, curriculum, kind);
+  const subject = getEmailSubject(kind, d);
 
   // Open in new tab via blob URL so the page can write its own HTML + helper bar
   const blob = new Blob([html], { type: 'text/html' });
@@ -1330,7 +1335,43 @@ function actionPrettyEmail(demoId) {
   navigator.clipboard.writeText(subject).catch(() => {});
 }
 
-function buildPrettyEmailHTML(d, curriculum) {
+function getEmailSubject(kind, d) {
+  if (kind === '24h') return fillTemplate(`See you tomorrow, {parent_name} — {child_name}'s class details inside`, d);
+  if (kind === '30m') return fillTemplate(`Starting in 30 minutes — {child_name}'s {course} class`, d);
+  return fillTemplate(`Your trial class is confirmed — see you soon, {parent_name}!`, d);
+}
+
+function getEmailContent(kind, d, curriculum) {
+  // Returns: { preheader, eyebrow, headline, subhead }
+  const childName = d.childName || 'your child';
+  const parentName = d.parentName || '';
+
+  if (kind === '24h') {
+    return {
+      preheader: `${childName}'s trial class is tomorrow. Here's everything you need.`,
+      eyebrow: 'Tomorrow · Reminder',
+      headline: 'See you tomorrow.',
+      subhead: `${childName}'s class is just a day away. A few things to keep handy.`
+    };
+  }
+  if (kind === '30m') {
+    return {
+      preheader: `Starting in 30 minutes. Join link inside.`,
+      eyebrow: 'Starting Soon · 30 Minutes',
+      headline: 'We start in 30 minutes.',
+      subhead: `Get ${childName} settled in a quiet spot — we'll see you shortly.`
+    };
+  }
+  return {
+    preheader: `${childName}'s trial class is confirmed — here's everything you need to know before we meet.`,
+    eyebrow: 'Trial Class Confirmed',
+    headline: 'See you soon.',
+    subhead: `We're excited to have ${childName} join us. Here's everything you need.`
+  };
+}
+
+function buildPrettyEmailHTML(d, curriculum, kind) {
+  kind = kind || 'confirmation';
   const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
@@ -1344,7 +1385,19 @@ function buildPrettyEmailHTML(d, curriculum) {
   const curriculumLink = curriculum ? `https://drive.google.com/file/d/${curriculum.fileId}/view` : '';
   const curriculumName = curriculum ? safe(curriculum.label) : '';
 
-  const subject = fillTemplate(loadTemplates().emailSubject, d);
+  const subject = getEmailSubject(kind, d);
+  const content = getEmailContent(kind, d, curriculum);
+  const preheader = safe(content.preheader);
+  const eyebrow = safe(content.eyebrow);
+  const headline = safe(content.headline);
+  const subhead = safe(content.subhead);
+
+  // Show/hide certain sections based on kind
+  const showWhatToExpect = kind === 'confirmation';
+  const showCurriculum = kind === 'confirmation' && curriculum;
+  const showPrepChecklist = kind === 'confirmation' || kind === '24h';
+  const showTrustBadges = kind === 'confirmation';
+  const ctaText = kind === '30m' ? 'Join Class Now →' : (kind === '24h' ? 'View Class Details →' : 'Join Class →');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1445,13 +1498,13 @@ function buildPrettyEmailHTML(d, curriculum) {
         <tr>
           <td style="padding:40px 40px 24px;text-align:center;">
             <p style="font-size:13px;color:#ff6b35;letter-spacing:3px;text-transform:uppercase;margin:0 0 12px;font-weight:700;">
-              Trial Class Confirmed
+              ${eyebrow}
             </p>
             <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:32px;color:#1a1a1a;margin:0 0 12px;font-weight:400;line-height:1.2;letter-spacing:-0.5px;">
-              See you soon, <em style="color:#ff6b35;">${parentName}</em>.
+              ${headline.replace(/soon\.$/, `soon, <em style="color:#ff6b35;">${parentName}</em>.`).replace(/tomorrow\.$/, `tomorrow, <em style="color:#ff6b35;">${parentName}</em>.`).replace(/30 minutes\.$/, `<em style="color:#ff6b35;">30 minutes</em>.`)}
             </h1>
             <p style="font-size:15px;color:#666;line-height:1.6;margin:0;">
-              We're excited to have ${childName} join us. Here's everything you need.
+              ${subhead}
             </p>
           </td>
         </tr>
@@ -1488,7 +1541,7 @@ function buildPrettyEmailHTML(d, curriculum) {
                     <tr>
                       <td align="center">
                         <a href="${classLink}" style="display:inline-block;background-color:#ff6b35;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.3px;">
-                          Join Class →
+                          ${ctaText}
                         </a>
                       </td>
                     </tr>
@@ -1499,6 +1552,7 @@ function buildPrettyEmailHTML(d, curriculum) {
           </td>
         </tr>
 
+        ${showWhatToExpect ? `
         <!-- WHAT TO EXPECT -->
         <tr>
           <td style="padding:0 40px 32px;">
@@ -1561,8 +1615,46 @@ function buildPrettyEmailHTML(d, curriculum) {
             </table>
           </td>
         </tr>
+        ` : ''}
 
-        ${curriculumLink ? `
+        ${kind === '30m' ? `
+        <!-- 30M URGENCY MESSAGE -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border-left:4px solid #ff6b35;border-radius:8px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0;">
+                    <strong>Just a friendly nudge —</strong> we'll see ${childName} in 30 minutes. Click the button above to join, and we'll be ready to welcome you both.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${kind === '24h' ? `
+        <!-- 24H MESSAGE -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border-left:4px solid #ff6b35;border-radius:8px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0 0 8px;">
+                    <strong>One quick thing —</strong> your presence really matters in this session.
+                  </p>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:0;">
+                    Most parents tell us they end up making the best decision for their child when they sit in alongside them. We'd love to have you there.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${showCurriculum ? `
         <!-- CURRICULUM -->
         <tr>
           <td style="padding:0 40px 32px;">
@@ -1585,6 +1677,7 @@ function buildPrettyEmailHTML(d, curriculum) {
         </tr>
         ` : ''}
 
+        ${showPrepChecklist ? `
         <!-- PREP CHECKLIST -->
         <tr>
           <td style="padding:0 40px 32px;">
@@ -1605,7 +1698,9 @@ function buildPrettyEmailHTML(d, curriculum) {
             </table>
           </td>
         </tr>
+        ` : ''}
 
+        ${showTrustBadges ? `
         <!-- TRUST BADGES -->
         <tr>
           <td style="padding:0 40px 32px;text-align:center;">
@@ -1623,6 +1718,7 @@ function buildPrettyEmailHTML(d, curriculum) {
             </table>
           </td>
         </tr>
+        ` : ''}
 
         <!-- SIGN-OFF -->
         <tr>
