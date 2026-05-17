@@ -118,34 +118,22 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Subtle ambient gradient overlay */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 80% 50% at 20% 0%, var(--accent-soft), transparent 60%);
-    opacity: 0.4;
-    z-index: -1;
-  }
+  /* Ambient gradient removed for scroll performance */
 
   .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 100px; }
 
-  /* ============ HEADER (frosted) ============ */
+  /* ============ HEADER (solid, performant) ============ */
   header {
     position: sticky; top: 16px;
     z-index: 50;
     display: flex; justify-content: space-between; align-items: center;
     margin: 0 auto 40px;
     padding: 16px 24px;
-    background: var(--glass);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-md);
     flex-wrap: wrap; gap: 16px;
-    transition: all 0.3s var(--ease);
   }
 
   .brand h1 {
@@ -192,7 +180,6 @@
   }
   .stat:hover {
     border-color: var(--border-strong);
-    transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
   .stat-label {
@@ -428,15 +415,15 @@
     border-radius: var(--radius-lg);
     padding: 24px;
     cursor: pointer;
-    transition: all 0.2s var(--ease);
+    transition: border-color 0.15s var(--ease), background 0.15s var(--ease), box-shadow 0.15s var(--ease);
     position: relative;
     overflow: hidden;
+    contain: layout style;
   }
   .demo-card:hover {
-    transform: translateY(-2px);
     border-color: var(--border-strong);
     background: var(--surface-hover);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
   }
   .demo-card.today {
     background: linear-gradient(135deg, var(--accent-soft), var(--glass));
@@ -504,9 +491,7 @@
   /* ============ MODAL ============ */
   .modal-overlay {
     position: fixed; inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 100;
     display: none;
     align-items: flex-start;
@@ -783,13 +768,13 @@
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 24px;
-    transition: all 0.2s var(--ease);
+    transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
     position: relative;
     overflow: hidden;
+    contain: layout style;
   }
   .pricing-card:hover {
     border-color: var(--border);
-    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
   }
   .pricing-card .pc-classes {
@@ -2859,7 +2844,14 @@ const DEFAULT_TEMPLATES = {
   reminder24h: true
 };
 
-const TEMPLATE_KEY = 'demo-tracker-templates-v2';
+const TEMPLATE_KEY = 'demo-tracker-templates-v3';
+
+// One-time cleanup: kill old v2 templates that may have corrupted emojis
+try {
+  if (!localStorage.getItem(TEMPLATE_KEY) && localStorage.getItem('demo-tracker-templates-v2')) {
+    localStorage.removeItem('demo-tracker-templates-v2');
+  }
+} catch(e) {}
 
 function loadTemplates() {
   // Detects corrupted unicode (replacement character U+FFFD '\ufffd' or '?')
