@@ -1676,58 +1676,52 @@ const PRICING_DATA = {
     lc: {
       label: 'Little Champs',
       gradeRange: 'Grade 2-3',
-      kit: { name: 'Robo Xcel — Jugaad Jack', price: 27 },
+      kit: { name: 'Robo Xcel — Jugaad Jack', price: 27, includedInPrice: true },
       oto: [
-        { classes: 15, regular: 413, standardFinal: 309, featured: false },
-        { classes: 30, regular: 825, standardFinal: 619, featured: true },
-        { classes: 60, regular: 1650, standardFinal: 1073, featured: true }
+        { classes: 15, regular: 480.75, featured: false },
+        { classes: 30, regular: 879, featured: true },
+        { classes: 60, regular: 1593, featured: true },
+        { classes: 120, regular: 2578, featured: true }
       ],
       otm: [
-        { classes: 15, regular: 338, standardFinal: 253, featured: false },
-        { classes: 30, regular: 675, standardFinal: 506, featured: true },
-        { classes: 60, regular: 1275, standardFinal: 829, featured: true }
+        { classes: 15, regular: 398.25, featured: false },
+        { classes: 30, regular: 729, featured: true },
+        { classes: 60, regular: 1255.80, featured: true },
+        { classes: 120, regular: 1843.60, featured: true }
       ]
     },
     jc: {
       label: 'Junior Champs',
       gradeRange: 'Grade 4-6',
-      kit: { name: 'Robo Xplore — Expedition', price: 80 },
+      kit: { name: 'Robo Xplore — Expedition', price: 80, includedInPrice: true },
       oto: [
-        { classes: 15, regular: 413, standardFinal: 309, featured: false },
-        { classes: 30, regular: 825, standardFinal: 619, featured: true },
-        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
-        { classes: 90, regular: 2475, standardFinal: 1609, featured: true },
-        { classes: 135, regular: 3713, standardFinal: 1671, featured: false },
-        { classes: 282, regular: 7755, standardFinal: 3490, featured: false }
+        { classes: 15, regular: 533.75, featured: false },
+        { classes: 45, regular: 1317.50, featured: true },
+        { classes: 90, regular: 2387.50, featured: true },
+        { classes: 150, regular: 3391.50, featured: true }
       ],
       otm: [
-        { classes: 15, regular: 338, standardFinal: 253, featured: false },
-        { classes: 30, regular: 675, standardFinal: 506, featured: true },
-        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
-        { classes: 90, regular: 1913, standardFinal: 1243, featured: true },
-        { classes: 135, regular: 2363, standardFinal: 1181, featured: false },
-        { classes: 282, regular: 4935, standardFinal: 2468, featured: false }
+        { classes: 15, regular: 451.25, featured: false },
+        { classes: 45, regular: 1092.50, featured: true },
+        { classes: 90, regular: 1881.70, featured: true },
+        { classes: 150, regular: 2473.50, featured: true }
       ]
     },
     sc: {
       label: 'Senior Champs',
       gradeRange: 'Grade 7-9',
-      kit: { name: 'Robo Xceed — Expedition', price: 59 },
+      kit: { name: 'Robo Xceed — Expedition', price: 59, includedInPrice: true },
       oto: [
-        { classes: 15, regular: 413, standardFinal: 309, featured: false },
-        { classes: 30, regular: 825, standardFinal: 619, featured: true },
-        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
-        { classes: 105, regular: 2888, standardFinal: 1877, featured: true },
-        { classes: 165, regular: 4538, standardFinal: 2042, featured: false },
-        { classes: 312, regular: 8580, standardFinal: 3861, featured: false }
+        { classes: 15, regular: 512.75, featured: false },
+        { classes: 60, regular: 1603, featured: true },
+        { classes: 105, regular: 2804.75, featured: true },
+        { classes: 210, regular: 4485.50, featured: true }
       ],
       otm: [
-        { classes: 15, regular: 338, standardFinal: 253, featured: false },
-        { classes: 30, regular: 675, standardFinal: 506, featured: true },
-        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
-        { classes: 105, regular: 2231, standardFinal: 1450, featured: true },
-        { classes: 165, regular: 2888, standardFinal: 1444, featured: false },
-        { classes: 312, regular: 5460, standardFinal: 2730, featured: false }
+        { classes: 15, regular: 430.25, featured: false },
+        { classes: 60, regular: 1265.80, featured: true },
+        { classes: 105, regular: 2214.65, featured: true },
+        { classes: 210, regular: 3200.30, featured: true }
       ]
     }
   }
@@ -1951,24 +1945,43 @@ function getPricingPlans() {
   const levelData = PRICING_DATA[course][level];
   let plans = (levelData[format] || []).slice();
   const kit = levelData.kit || null;
+  const kitIncludedInRegular = kit && kit.includedInPrice;
 
-  // Apply discount directly to regular price (kit is NOT discounted)
   plans = plans.map(p => {
-    const classesAfterDiscount = Math.round(p.regular * (1 - discount / 100));
-    const kitPrice = kit ? kit.price : 0;
-    const finalPrice = classesAfterDiscount + kitPrice;
-    const totalRegular = p.regular + kitPrice;
+    let classesAfterDiscount, kitPrice, finalPrice, totalRegular;
+
+    if (kitIncludedInRegular) {
+      // Kit is already inside the regular price — discount applies to whole thing
+      finalPrice = Math.round(p.regular * (1 - discount / 100) * 100) / 100;
+      totalRegular = p.regular;
+      kitPrice = kit.price;
+      classesAfterDiscount = finalPrice - kitPrice; // for display purposes
+    } else if (kit) {
+      // Kit is added on top, not discounted
+      classesAfterDiscount = Math.round(p.regular * (1 - discount / 100));
+      kitPrice = kit.price;
+      finalPrice = classesAfterDiscount + kitPrice;
+      totalRegular = p.regular + kitPrice;
+    } else {
+      // No kit (Coding)
+      classesAfterDiscount = Math.round(p.regular * (1 - discount / 100));
+      kitPrice = 0;
+      finalPrice = classesAfterDiscount;
+      totalRegular = p.regular;
+    }
+
     const totalSavings = totalRegular - finalPrice;
     return {
       ...p,
       classesAfterDiscount: classesAfterDiscount,
       kit: kit,
       kitPrice: kitPrice,
+      kitIncludedInRegular: kitIncludedInRegular,
       finalPrice: finalPrice,
       totalRegular: totalRegular,
       save: totalSavings,
       totalDiscountPct: discount,
-      perClass: classesAfterDiscount / p.classes
+      perClass: finalPrice / p.classes
     };
   });
 
@@ -2052,10 +2065,14 @@ function renderPricingCard(plan, meta, provider) {
   return '<div class="pricing-card">' +
     '<div class="pc-classes">' + plan.classes + ' classes</div>' +
     (duration ? '<div class="pc-duration">~' + duration.display + ' at ' + meta.classesPerWeek + '/week</div>' : '') +
-    '<div class="pc-price">$' + plan.finalPrice.toLocaleString() + '</div>' +
-    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.totalRegular.toLocaleString() + '</div>' : '') +
-    (meta.discount > 0 && plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off classes)</div>' : '') +
-    (plan.kit ? '<div class="pc-kit-line">Classes: $' + plan.classesAfterDiscount.toLocaleString() + ' + Kit: $' + plan.kitPrice + ' (' + escapeHtml(plan.kit.name) + ')</div>' : '') +
+    '<div class="pc-price">$' + plan.finalPrice.toLocaleString(undefined, {maximumFractionDigits: 2}) + '</div>' +
+    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.totalRegular.toLocaleString(undefined, {maximumFractionDigits: 2}) + '</div>' : '') +
+    (meta.discount > 0 && plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' (' + meta.discount + '% off)</div>' : '') +
+    (plan.kit ? (
+      plan.kitIncludedInRegular
+        ? '<div class="pc-kit-line">✓ Kit included: ' + escapeHtml(plan.kit.name) + '</div>'
+        : '<div class="pc-kit-line">Classes: $' + plan.classesAfterDiscount.toLocaleString() + ' + Kit: $' + plan.kitPrice + ' (' + escapeHtml(plan.kit.name) + ')</div>'
+    ) : '') +
     '<div class="pc-per-class">Just <strong>$' + plan.perClass.toFixed(2) + '</strong> per class</div>' +
     installmentHTML +
   '</div>';
@@ -2097,18 +2114,25 @@ function buildParentPricingHTML() {
       '<div style="background:#ffffff;border:1px solid #f0ebe5;border-radius:16px;padding:32px 28px;box-shadow:0 2px 12px rgba(0,0,0,0.04);">' +
         '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#999;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;">' + plan.classes + ' classes</p>' +
         (duration ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#ff6b35;margin:0 0 20px;font-weight:600;">~' + duration.display + ' at ' + meta.classesPerWeek + ' class' + (meta.classesPerWeek > 1 ? 'es' : '') + '/week</p>' : '') +
-        '<div style="font-family:Georgia,serif;font-size:52px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;margin-bottom:10px;">$' + plan.finalPrice.toLocaleString() + '</div>' +
-        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.totalRegular.toLocaleString() + '</p>' : '') +
-        (meta.discount > 0 && plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off classes)</p>' : '') +
+        '<div style="font-family:Georgia,serif;font-size:52px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;margin-bottom:10px;">$' + plan.finalPrice.toLocaleString(undefined, {maximumFractionDigits: 2}) + '</div>' +
+        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.totalRegular.toLocaleString(undefined, {maximumFractionDigits: 2}) + '</p>' : '') +
+        (meta.discount > 0 && plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString(undefined, {maximumFractionDigits: 2}) + ' (' + meta.discount + '% off)</p>' : '') +
         (plan.kit ? (
-          '<div style="margin-top:16px;padding:12px 14px;background:#fafafa;border-radius:8px;border:1px solid #f0ebe5;">' +
-            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin:0 0 6px;">Price Breakdown</p>' +
-            '<table style="width:100%;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;">' +
-              '<tr><td>Classes' + (meta.discount > 0 ? ' (' + meta.discount + '% off)' : '') + '</td><td style="text-align:right;color:#1a1a1a;">$' + plan.classesAfterDiscount.toLocaleString() + '</td></tr>' +
-              '<tr><td>' + safe(plan.kit.name) + ' Kit</td><td style="text-align:right;color:#1a1a1a;">$' + plan.kitPrice + '</td></tr>' +
-              '<tr><td style="padding-top:6px;border-top:1px solid #f0ebe5;font-weight:600;color:#1a1a1a;">Total</td><td style="padding-top:6px;border-top:1px solid #f0ebe5;text-align:right;font-weight:700;color:#1a1a1a;">$' + plan.finalPrice.toLocaleString() + '</td></tr>' +
-            '</table>' +
-          '</div>'
+          plan.kitIncludedInRegular ? (
+            '<div style="margin-top:16px;padding:12px 14px;background:#fff8f4;border-radius:8px;border:1px solid #ffd4bd;">' +
+              '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#1a1a1a;margin:0;font-weight:600;">✓ Includes ' + safe(plan.kit.name) + ' Kit</p>' +
+              '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#666;margin:4px 0 0;">Robotics kit shipped to your door</p>' +
+            '</div>'
+          ) : (
+            '<div style="margin-top:16px;padding:12px 14px;background:#fafafa;border-radius:8px;border:1px solid #f0ebe5;">' +
+              '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin:0 0 6px;">Price Breakdown</p>' +
+              '<table style="width:100%;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;">' +
+                '<tr><td>Classes' + (meta.discount > 0 ? ' (' + meta.discount + '% off)' : '') + '</td><td style="text-align:right;color:#1a1a1a;">$' + plan.classesAfterDiscount.toLocaleString() + '</td></tr>' +
+                '<tr><td>' + safe(plan.kit.name) + ' Kit</td><td style="text-align:right;color:#1a1a1a;">$' + plan.kitPrice + '</td></tr>' +
+                '<tr><td style="padding-top:6px;border-top:1px solid #f0ebe5;font-weight:600;color:#1a1a1a;">Total</td><td style="padding-top:6px;border-top:1px solid #f0ebe5;text-align:right;font-weight:700;color:#1a1a1a;">$' + plan.finalPrice.toLocaleString() + '</td></tr>' +
+              '</table>' +
+            '</div>'
+          )
         ) : '') +
         '<div style="margin:24px 0 0;padding-top:20px;border-top:1px solid #f0ebe5;">' +
           '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#666;margin:0;">Just <strong style="color:#1a1a1a;font-size:20px;font-family:Georgia,serif;font-weight:500;">$' + plan.perClass.toFixed(2) + '</strong> per class</p>' +
