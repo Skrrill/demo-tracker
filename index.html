@@ -742,6 +742,7 @@
         <label for="pricing-course">Course</label>
         <select id="pricing-course">
           <option value="coding">Coding</option>
+          <option value="robotics">Robotics</option>
         </select>
       </div>
       <div class="form-group">
@@ -760,8 +761,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="pricing-discount">Discount %</label>
-        <input type="number" id="pricing-discount" value="25" min="0" max="80" step="1">
+        <label for="pricing-discount">Extra Discount % <span style="color:var(--text-faint);text-transform:none;letter-spacing:normal;font-weight:400;font-size:11px;">(on top of standard)</span></label>
+        <input type="number" id="pricing-discount" value="0" min="0" max="50" step="1">
       </div>
       <div class="form-group">
         <label for="pricing-classes-per-week">Classes per Week</label>
@@ -1599,65 +1600,124 @@ async function importData(event) {
 }
 
 // ============ PRICING PRESENTER ============
-// Base regular prices (without any discounts applied)
+// Pricing data: each plan stores both the REGULAR (strikethrough) price
+// and the STANDARD FINAL price (already discounted with the default ONALL25 coupon + website tier).
+// Any user-entered "additional discount %" is applied ON TOP of standardFinal.
+// This matches what parents already see on book.brightchamps.com.
 const PRICING_DATA = {
   coding: {
     lc: {
       label: 'Little Champs',
       gradeRange: 'Grade 2-3',
       oto: [
-        { classes: 15, regular: 413, featured: false },
-        { classes: 30, regular: 825, featured: true },
-        { classes: 60, regular: 1650, featured: true }
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true }
       ],
       otm: [
-        { classes: 15, regular: 338, featured: false },
-        { classes: 30, regular: 675, featured: true },
-        { classes: 60, regular: 1275, featured: true }
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true }
       ]
     },
     jc: {
       label: 'Junior Champs',
       gradeRange: 'Grade 4-6',
       oto: [
-        { classes: 15, regular: 413, featured: false },
-        { classes: 30, regular: 825, featured: true },
-        { classes: 60, regular: 1650, featured: true },
-        { classes: 90, regular: 2475, featured: true },
-        { classes: 135, regular: 3713, featured: false },
-        { classes: 182, regular: 5005, featured: false },
-        { classes: 282, regular: 7755, featured: false }
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
+        { classes: 90, regular: 2475, standardFinal: 1609, featured: true },
+        { classes: 135, regular: 3713, standardFinal: 1671, featured: false },
+        { classes: 182, regular: 5005, standardFinal: 2253, featured: false },
+        { classes: 282, regular: 7755, standardFinal: 3490, featured: false }
       ],
       otm: [
-        { classes: 15, regular: 338, featured: false },
-        { classes: 30, regular: 675, featured: true },
-        { classes: 60, regular: 1275, featured: true },
-        { classes: 90, regular: 1913, featured: true },
-        { classes: 135, regular: 2363, featured: false },
-        { classes: 182, regular: 3185, featured: false },
-        { classes: 282, regular: 4935, featured: false }
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
+        { classes: 90, regular: 1913, standardFinal: 1243, featured: true },
+        { classes: 135, regular: 2363, standardFinal: 1181, featured: false },
+        { classes: 182, regular: 3185, standardFinal: 1592, featured: false },
+        { classes: 282, regular: 4935, standardFinal: 2468, featured: false }
       ]
     },
     sc: {
       label: 'Senior Champs',
       gradeRange: 'Grade 7-9',
       oto: [
-        { classes: 15, regular: 413, featured: false },
-        { classes: 30, regular: 825, featured: true },
-        { classes: 60, regular: 1650, featured: true },
-        { classes: 105, regular: 2888, featured: true },
-        { classes: 165, regular: 4538, featured: false },
-        { classes: 220, regular: 6050, featured: false },
-        { classes: 312, regular: 8580, featured: false }
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
+        { classes: 105, regular: 2888, standardFinal: 1877, featured: true },
+        { classes: 165, regular: 4538, standardFinal: 2042, featured: false },
+        { classes: 220, regular: 6050, standardFinal: 2723, featured: false },
+        { classes: 312, regular: 8580, standardFinal: 3861, featured: false }
       ],
       otm: [
-        { classes: 15, regular: 338, featured: false },
-        { classes: 30, regular: 675, featured: true },
-        { classes: 60, regular: 1275, featured: true },
-        { classes: 105, regular: 2231, featured: true },
-        { classes: 165, regular: 2888, featured: false },
-        { classes: 220, regular: 3850, featured: false },
-        { classes: 312, regular: 5460, featured: false }
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
+        { classes: 105, regular: 2231, standardFinal: 1450, featured: true },
+        { classes: 165, regular: 2888, standardFinal: 1444, featured: false },
+        { classes: 220, regular: 3850, standardFinal: 1925, featured: false },
+        { classes: 312, regular: 5460, standardFinal: 2730, featured: false }
+      ]
+    }
+  },
+  robotics: {
+    lc: {
+      label: 'Little Champs',
+      gradeRange: 'Grade 2-3',
+      oto: [
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true }
+      ],
+      otm: [
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true }
+      ]
+    },
+    jc: {
+      label: 'Junior Champs',
+      gradeRange: 'Grade 4-6',
+      oto: [
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
+        { classes: 90, regular: 2475, standardFinal: 1609, featured: true },
+        { classes: 135, regular: 3713, standardFinal: 1671, featured: false },
+        { classes: 282, regular: 7755, standardFinal: 3490, featured: false }
+      ],
+      otm: [
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
+        { classes: 90, regular: 1913, standardFinal: 1243, featured: true },
+        { classes: 135, regular: 2363, standardFinal: 1181, featured: false },
+        { classes: 282, regular: 4935, standardFinal: 2468, featured: false }
+      ]
+    },
+    sc: {
+      label: 'Senior Champs',
+      gradeRange: 'Grade 7-9',
+      oto: [
+        { classes: 15, regular: 413, standardFinal: 309, featured: false },
+        { classes: 30, regular: 825, standardFinal: 619, featured: true },
+        { classes: 60, regular: 1650, standardFinal: 1073, featured: true },
+        { classes: 105, regular: 2888, standardFinal: 1877, featured: true },
+        { classes: 165, regular: 4538, standardFinal: 2042, featured: false },
+        { classes: 312, regular: 8580, standardFinal: 3861, featured: false }
+      ],
+      otm: [
+        { classes: 15, regular: 338, standardFinal: 253, featured: false },
+        { classes: 30, regular: 675, standardFinal: 506, featured: true },
+        { classes: 60, regular: 1275, standardFinal: 829, featured: true },
+        { classes: 105, regular: 2231, standardFinal: 1450, featured: true },
+        { classes: 165, regular: 2888, standardFinal: 1444, featured: false },
+        { classes: 312, regular: 5460, standardFinal: 2730, featured: false }
       ]
     }
   }
@@ -1869,41 +1929,34 @@ function calcDurationFromClasses(totalClasses, classesPerWeek) {
   return { weeks: Math.round(weeks), months: Math.round(months), display: display };
 }
 
-// Get pricing plans with discount applied
+// Get pricing plans with additional discount applied on top of standard discounted price
 function getPricingPlans() {
   const course = document.getElementById('pricing-course').value;
   const level = document.getElementById('pricing-level').value;
   const format = document.getElementById('pricing-format').value;
-  const discount = parseFloat(document.getElementById('pricing-discount').value) || 0;
+  const additionalDiscount = parseFloat(document.getElementById('pricing-discount').value) || 0;
   const customClasses = parseInt(document.getElementById('pricing-custom-classes').value) || 0;
 
   if (!PRICING_DATA[course] || !PRICING_DATA[course][level]) return [];
   let plans = (PRICING_DATA[course][level][format] || []).slice();
 
-  // Apply discount
+  // Apply additional discount on top of the standard final price
   plans = plans.map(p => {
-    const finalPrice = Math.round(p.regular * (1 - discount / 100));
+    const finalPrice = Math.round(p.standardFinal * (1 - additionalDiscount / 100));
+    const totalSavings = p.regular - finalPrice;
+    const totalDiscountPct = Math.round((1 - finalPrice / p.regular) * 100);
     return {
       ...p,
       finalPrice: finalPrice,
-      save: p.regular - finalPrice,
+      save: totalSavings,
+      totalDiscountPct: totalDiscountPct,
       perClass: finalPrice / p.classes
     };
   });
 
-  // If custom classes set, replace last featured plan with custom
+  // If custom classes set, show that one + featured plans
   if (customClasses > 0) {
-    const customPlan = plans.find(p => p.classes === customClasses);
-    if (customPlan) {
-      // Mark this one as featured/visible
-      plans.forEach(p => { p.showInPresenter = (p === customPlan); });
-      const featured = plans.filter(p => p.featured);
-      featured.forEach(p => { p.showInPresenter = true; });
-      // Add the custom plan if not already in featured
-      if (!customPlan.featured) {
-        customPlan.showInPresenter = true;
-      }
-    }
+    plans.forEach(p => { p.showInPresenter = p.featured || p.classes === customClasses; });
   } else {
     plans.forEach(p => { p.showInPresenter = p.featured; });
   }
@@ -1982,8 +2035,8 @@ function renderPricingCard(plan, meta, provider) {
     '<div class="pc-classes">' + plan.classes + ' classes</div>' +
     (duration ? '<div class="pc-duration">~' + duration.display + ' at ' + meta.classesPerWeek + '/week</div>' : '') +
     '<div class="pc-price">$' + plan.finalPrice.toLocaleString() + '</div>' +
-    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.regular.toLocaleString() + '</div>' : '') +
-    (plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</div>' : '') +
+    '<div class="pc-regular">Regular: $' + plan.regular.toLocaleString() + '</div>' +
+    (plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + plan.totalDiscountPct + '% off)</div>' : '') +
     '<div class="pc-per-class">Just <strong>$' + plan.perClass.toFixed(2) + '</strong> per class</div>' +
     installmentHTML +
   '</div>';
@@ -2024,8 +2077,8 @@ function buildParentPricingHTML() {
         '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#999;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;">' + plan.classes + ' classes</p>' +
         (duration ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#ff6b35;margin:0 0 20px;font-weight:600;">~' + duration.display + ' at ' + meta.classesPerWeek + ' class' + (meta.classesPerWeek > 1 ? 'es' : '') + '/week</p>' : '') +
         '<div style="font-family:Georgia,serif;font-size:52px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;margin-bottom:10px;">$' + plan.finalPrice.toLocaleString() + '</div>' +
-        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.regular.toLocaleString() + '</p>' : '') +
-        (plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</p>' : '') +
+        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.regular.toLocaleString() + '</p>' +
+        (plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + plan.totalDiscountPct + '% off)</p>' : '') +
         '<div style="margin:24px 0 0;padding-top:20px;border-top:1px solid #f0ebe5;">' +
           '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#666;margin:0;">Just <strong style="color:#1a1a1a;font-size:20px;font-family:Georgia,serif;font-weight:500;">$' + plan.perClass.toFixed(2) + '</strong> per class</p>' +
         '</div>' +
