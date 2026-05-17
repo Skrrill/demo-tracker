@@ -755,9 +755,9 @@
       <div class="form-group">
         <label for="pricing-level">Grade Level</label>
         <select id="pricing-level">
-          <option value="lc">Little Champs (Grade 2-3)</option>
-          <option value="jc" selected>Junior Champs (Grade 4-6)</option>
-          <option value="sc">Senior Champs (Grade 7-9)</option>
+          <option value="lc">Little Champs</option>
+          <option value="jc" selected>Junior Champs</option>
+          <option value="sc">Senior Champs</option>
         </select>
       </div>
       <div class="form-group">
@@ -1675,7 +1675,7 @@ const PRICING_DATA = {
   robotics: {
     lc: {
       label: 'Little Champs',
-      gradeRange: 'Grade 2-3',
+      gradeRange: 'Grade 1-2',
       kit: { name: 'Robo Xcel — Jugaad Jack', price: 27, includedInPrice: true },
       oto: [
         { classes: 15, regular: 480.75, featured: false },
@@ -1692,7 +1692,7 @@ const PRICING_DATA = {
     },
     jc: {
       label: 'Junior Champs',
-      gradeRange: 'Grade 4-6',
+      gradeRange: 'Grade 3-6',
       kit: { name: 'Robo Xplore — Expedition', price: 80, includedInPrice: true },
       oto: [
         { classes: 15, regular: 533.75, featured: false },
@@ -1709,7 +1709,7 @@ const PRICING_DATA = {
     },
     sc: {
       label: 'Senior Champs',
-      gradeRange: 'Grade 7-9',
+      gradeRange: 'Grade 7+',
       kit: { name: 'Robo Xceed — Expedition', price: 59, includedInPrice: true },
       oto: [
         { classes: 15, regular: 512.75, featured: false },
@@ -2019,6 +2019,18 @@ function getPricingMeta() {
 }
 
 function renderPricingPreview() {
+  // Update level dropdown labels based on selected course
+  const course = document.getElementById('pricing-course').value;
+  const levelSelect = document.getElementById('pricing-level');
+  const currentLevel = levelSelect.value;
+  if (PRICING_DATA[course]) {
+    levelSelect.innerHTML = '' +
+      '<option value="lc">' + PRICING_DATA[course].lc.label + ' (' + PRICING_DATA[course].lc.gradeRange + ')</option>' +
+      '<option value="jc">' + PRICING_DATA[course].jc.label + ' (' + PRICING_DATA[course].jc.gradeRange + ')</option>' +
+      '<option value="sc">' + PRICING_DATA[course].sc.label + ' (' + PRICING_DATA[course].sc.gradeRange + ')</option>';
+    levelSelect.value = currentLevel || 'jc';
+  }
+
   const allPlans = getPricingPlans();
   const meta = getPricingMeta();
   const container = document.getElementById('pricing-cards-preview');
