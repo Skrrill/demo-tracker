@@ -2848,8 +2848,8 @@ function getDirectDownloadLink(fileId) {
 }
 
 const DEFAULT_TEMPLATES = {
-  wa24h: `Hi {parent_name} 👋\n\nJust a quick reminder — {child_name}'s *{course} trial class* is *tomorrow*.\n\n📅  {date}\n🕐  {time}\n\nA few small things to keep handy:\n• Laptop or PC ready\n• Stable internet\n• A quiet spot to focus\n\nIf possible, please sit in with {child_name} — it really helps. Looking forward to it!\n\n— Rituraj, BrightCHAMPS`,
-  wa30m: `Hi {parent_name}, quick heads up — {child_name}'s class starts in *30 minutes* at *{time}*.\n\n🔗 Join here: {class_link}\n\nGet {child_name} settled in a quiet spot, and we'll see you both shortly.\n\n— Rituraj`,
+  wa24h: `Hi {parent_name},\n\nJust a quick reminder — {child_name}'s *{course} trial class* is *tomorrow*.\n\n*Date:* {date}\n*Time:* {time}\n\nA few small things to keep handy:\n- Laptop or PC ready\n- Stable internet\n- A quiet spot for {child_name} to focus\n\nIf possible, please sit in with {child_name} — it really helps. Looking forward to it!\n\n— Rituraj, BrightCHAMPS`,
+  wa30m: `Hi {parent_name}, quick heads up — {child_name}'s class starts in *30 minutes* at *{time}*.\n\nJoin here: {class_link}\n\nGet {child_name} settled in a quiet spot and we'll see you both shortly.\n\n— Rituraj`,
   emailSubject: `Your trial class is confirmed — see you soon, {parent_name}!`,
   emailBody: `Hi {parent_name},\n\nGreat news — {child_name}'s {course} trial class is confirmed. Here's everything you need:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  SESSION DETAILS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📅  Date:     {date}\n🕐  Time:     {time}\n👤  Student:  {child_name} (Grade {grade})\n📚  Course:   {course}\n\n🔗  Join here: {class_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  WHAT TO EXPECT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🎯  Hands-on live class with an expert\n👨‍👩‍👧  Your presence makes a real difference — sit in if you can\n💬  Personal 1:1 counselling right after the session\n🎁  Exclusive on-call scholarship for families who enroll today\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  BEFORE THE CLASS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✓  Laptop or PC ready\n✓  Stable internet connection\n✓  Join 5 minutes early to test audio/video\n✓  A quiet space where {child_name} can focus\n\n📘 {curriculum_name} Curriculum:\n{curriculum_link}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAny questions before we meet? Just reply to this email — I'm here.\n\nLooking forward to it.\n\nRituraj\nAcademic Counsellor, BrightCHAMPS\nbrightchamps.com\n\nSTEM Accredited · Harvard Collaboration · MIT/IIT/IIM Mentors\nLIVE 1:1 Smart Technology Classes · Grades 1–12`,
   sms: `Hi {parent_name}, reminder: {child_name}'s {course} class is on {date} at {time}. Join: {class_link} - Rituraj, BrightCHAMPS`,
@@ -2862,6 +2862,14 @@ const DEFAULT_TEMPLATES = {
 const TEMPLATE_KEY = 'demo-tracker-templates-v2';
 
 function loadTemplates() {
+  // Detects corrupted unicode (replacement character U+FFFD '\ufffd' or '?')
+  // and resets just that template back to defaults so emojis don't appear corrupted.
+  const REPLACEMENT_CHAR = '\ufffd';
+  function healTemplate(value, fallback) {
+    if (typeof value !== 'string' || !value) return fallback;
+    if (value.includes(REPLACEMENT_CHAR)) return fallback;
+    return value;
+  }
   try {
     const raw = localStorage.getItem(TEMPLATE_KEY);
     if (!raw) {
@@ -2871,9 +2879,9 @@ function loadTemplates() {
           const old = JSON.parse(oldRaw);
           return {
             ...DEFAULT_TEMPLATES,
-            wa24h: old.wa24h || DEFAULT_TEMPLATES.wa24h,
-            wa30m: old.wa30m || DEFAULT_TEMPLATES.wa30m,
-            sms: old.sms || DEFAULT_TEMPLATES.sms,
+            wa24h: healTemplate(old.wa24h, DEFAULT_TEMPLATES.wa24h),
+            wa30m: healTemplate(old.wa30m, DEFAULT_TEMPLATES.wa30m),
+            sms: healTemplate(old.sms, DEFAULT_TEMPLATES.sms),
             reminder30m: old.reminder30m,
             reminder24h: old.reminder24h
           };
@@ -2881,8 +2889,16 @@ function loadTemplates() {
       }
       return { ...DEFAULT_TEMPLATES };
     }
-    // Merge with defaults so new keys (smsToday, smsImminent) get filled in
-    return { ...DEFAULT_TEMPLATES, ...JSON.parse(raw) };
+    // Merge with defaults so new keys get filled in, and heal any corrupted strings
+    const saved = JSON.parse(raw);
+    const merged = { ...DEFAULT_TEMPLATES, ...saved };
+    // Heal any string field that has replacement chars
+    Object.keys(merged).forEach(key => {
+      if (typeof merged[key] === 'string' && merged[key].includes(REPLACEMENT_CHAR)) {
+        merged[key] = DEFAULT_TEMPLATES[key] || '';
+      }
+    });
+    return merged;
   } catch (e) {
     return { ...DEFAULT_TEMPLATES };
   }
@@ -3831,7 +3847,12 @@ setInterval(checkReminders, 60 * 1000);
 
 // ============ INIT ============
 function bindUI() {
-  document.getElementById('search').addEventListener('input', renderDemos);
+  // Debounced search to prevent re-render on every keystroke
+  let searchDebounceTimer;
+  document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(renderDemos, 150);
+  });
   document.getElementById('add-btn').addEventListener('click', openAddModal);
   document.getElementById('export-btn').addEventListener('click', exportData);
   document.getElementById('import-btn').addEventListener('click', () => {
@@ -3877,12 +3898,19 @@ function bindUI() {
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
   document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
-  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment', 'pricing-discount', 'pricing-classes-per-week', 'pricing-custom-classes', 'pricing-apr'].forEach(id => {
+  // Pricing: debounce text inputs, instant for dropdowns
+  let pricingDebounceTimer;
+  const debouncedPricingRender = () => {
+    clearTimeout(pricingDebounceTimer);
+    pricingDebounceTimer = setTimeout(renderPricingPreview, 120);
+  };
+  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment', 'pricing-classes-per-week', 'pricing-custom-classes'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('change', renderPricingPreview);
-      el.addEventListener('input', renderPricingPreview);
-    }
+    if (el) el.addEventListener('change', renderPricingPreview);
+  });
+  ['pricing-discount', 'pricing-apr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', debouncedPricingRender);
   });
 
   // Token chips - click to copy
