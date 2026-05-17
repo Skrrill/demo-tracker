@@ -151,9 +151,9 @@
   .brand h1 {
     font-family: -apple-system, 'Inter', sans-serif;
     font-weight: 600;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-    line-height: 1;
+    font-size: 24px;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
     color: var(--text);
   }
   .brand h1 em {
@@ -162,20 +162,26 @@
     font-weight: 600;
   }
   .brand p {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-faint);
-    letter-spacing: 0.02em;
-    margin-top: 4px;
+    letter-spacing: -0.005em;
+    margin-top: 2px;
     font-weight: 400;
   }
   .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #user-email {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: inherit !important;
+    letter-spacing: -0.005em;
+  }
 
   /* ============ STATS ROW ============ */
   .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
   }
   .stat {
     background: var(--glass);
@@ -183,29 +189,143 @@
     -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
-    padding: 20px 22px;
+    padding: 24px 26px;
     transition: all 0.25s var(--ease);
   }
   .stat:hover {
-    border-color: var(--border);
+    border-color: var(--border-strong);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
   .stat-label {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-dim);
-    letter-spacing: 0.02em;
-    margin-bottom: 8px;
+    letter-spacing: -0.005em;
+    margin-bottom: 12px;
     font-weight: 500;
   }
   .stat-value {
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     line-height: 1;
     color: var(--text);
+    font-variant-numeric: tabular-nums;
   }
   .stat-value.accent { color: var(--accent); }
+  .stat-value.warning { color: var(--warning); }
+
+  /* ============ FILTERS (segmented control) ============ */
+  .filters {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 5px;
+    background: var(--surface-2);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--border-soft);
+    border-radius: 980px;
+    margin-bottom: 16px;
+  }
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 980px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: all 0.2s var(--ease);
+    line-height: 1;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active {
+    background: var(--bg-elevated);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+  .filter-tab .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--surface-2);
+    color: var(--text-dim);
+    border-radius: 980px;
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-tab.active .count {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  /* ============ SEARCH BAR ============ */
+  .search-bar {
+    margin-bottom: 24px;
+  }
+  .search-bar input,
+  #search {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    transition: all 0.2s var(--ease);
+  }
+  .search-bar input::placeholder,
+  #search::placeholder { color: var(--text-faint); }
+  .search-bar input:focus,
+  #search:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--bg-elevated);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  /* ============ SYNC INDICATOR ============ */
+  .sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--success-soft);
+    color: var(--success);
+    border-radius: 980px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .sync-status .dot {
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .sync-status.syncing { background: var(--accent-soft); color: var(--accent); }
+  .sync-status.syncing .dot { background: var(--accent); }
+  .sync-status.error { background: var(--danger-soft); color: var(--danger); }
+  .sync-status.error .dot { background: var(--danger); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
 
   /* ============ BUTTONS ============ */
   .btn {
@@ -326,12 +446,13 @@
   }
   .demo-card:hover {
     transform: translateY(-2px);
-    border-color: var(--border);
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
     box-shadow: var(--shadow-lg);
   }
   .demo-card.today {
+    background: linear-gradient(135deg, var(--accent-soft), var(--glass));
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), var(--shadow-md);
   }
   .demo-card.today::before {
     content: '';
@@ -340,28 +461,31 @@
   }
   .card-header {
     display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 16px; gap: 12px;
+    margin-bottom: 20px; gap: 12px;
   }
   .child-info h3 {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     color: var(--text);
     margin-bottom: 4px;
+    line-height: 1.2;
   }
   .child-info .meta {
     font-size: 13px;
     color: var(--text-dim);
+    letter-spacing: -0.005em;
   }
 
   .status-badge {
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: 980px;
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-weight: 600;
+    letter-spacing: -0.005em;
     text-transform: none;
     white-space: nowrap;
+    line-height: 1;
   }
   .status-scheduled { background: var(--accent-soft); color: var(--accent); }
   .status-confirmed { background: var(--success-soft); color: var(--success); }
@@ -853,7 +977,7 @@
   <header>
     <div class="brand">
       <h1>Demo <em>Tracker</em></h1>
-      <p>// cloud-synced across devices</p>
+      <p>Synced across devices</p>
     </div>
     <div class="header-actions">
       <span id="sync-status" class="sync-status"><span class="dot"></span><span id="sync-text">connecting</span></span>
