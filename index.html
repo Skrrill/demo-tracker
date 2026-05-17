@@ -481,6 +481,13 @@
     margin-top: 4px;
     font-family: 'JetBrains Mono', monospace;
   }
+  .pricing-card .pc-kit-line {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.5;
+  }
   .pricing-card .pc-per-class {
     margin-top: 14px;
     padding-top: 14px;
@@ -1669,6 +1676,7 @@ const PRICING_DATA = {
     lc: {
       label: 'Little Champs',
       gradeRange: 'Grade 2-3',
+      kit: { name: 'Robo Xcel — Jugaad Jack', price: 27 },
       oto: [
         { classes: 15, regular: 413, standardFinal: 309, featured: false },
         { classes: 30, regular: 825, standardFinal: 619, featured: true },
@@ -1683,6 +1691,7 @@ const PRICING_DATA = {
     jc: {
       label: 'Junior Champs',
       gradeRange: 'Grade 4-6',
+      kit: { name: 'Robo Xplore — Expedition', price: 80 },
       oto: [
         { classes: 15, regular: 413, standardFinal: 309, featured: false },
         { classes: 30, regular: 825, standardFinal: 619, featured: true },
@@ -1703,6 +1712,7 @@ const PRICING_DATA = {
     sc: {
       label: 'Senior Champs',
       gradeRange: 'Grade 7-9',
+      kit: { name: 'Robo Xceed — Expedition', price: 59 },
       oto: [
         { classes: 15, regular: 413, standardFinal: 309, featured: false },
         { classes: 30, regular: 825, standardFinal: 619, featured: true },
@@ -1938,18 +1948,27 @@ function getPricingPlans() {
   const customClasses = parseInt(document.getElementById('pricing-custom-classes').value) || 0;
 
   if (!PRICING_DATA[course] || !PRICING_DATA[course][level]) return [];
-  let plans = (PRICING_DATA[course][level][format] || []).slice();
+  const levelData = PRICING_DATA[course][level];
+  let plans = (levelData[format] || []).slice();
+  const kit = levelData.kit || null;
 
-  // Apply discount directly to regular price
+  // Apply discount directly to regular price (kit is NOT discounted)
   plans = plans.map(p => {
-    const finalPrice = Math.round(p.regular * (1 - discount / 100));
-    const totalSavings = p.regular - finalPrice;
+    const classesAfterDiscount = Math.round(p.regular * (1 - discount / 100));
+    const kitPrice = kit ? kit.price : 0;
+    const finalPrice = classesAfterDiscount + kitPrice;
+    const totalRegular = p.regular + kitPrice;
+    const totalSavings = totalRegular - finalPrice;
     return {
       ...p,
+      classesAfterDiscount: classesAfterDiscount,
+      kit: kit,
+      kitPrice: kitPrice,
       finalPrice: finalPrice,
+      totalRegular: totalRegular,
       save: totalSavings,
       totalDiscountPct: discount,
-      perClass: finalPrice / p.classes
+      perClass: classesAfterDiscount / p.classes
     };
   });
 
@@ -2034,8 +2053,9 @@ function renderPricingCard(plan, meta, provider) {
     '<div class="pc-classes">' + plan.classes + ' classes</div>' +
     (duration ? '<div class="pc-duration">~' + duration.display + ' at ' + meta.classesPerWeek + '/week</div>' : '') +
     '<div class="pc-price">$' + plan.finalPrice.toLocaleString() + '</div>' +
-    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.regular.toLocaleString() + '</div>' : '') +
-    (meta.discount > 0 && plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</div>' : '') +
+    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.totalRegular.toLocaleString() + '</div>' : '') +
+    (meta.discount > 0 && plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off classes)</div>' : '') +
+    (plan.kit ? '<div class="pc-kit-line">Classes: $' + plan.classesAfterDiscount.toLocaleString() + ' + Kit: $' + plan.kitPrice + ' (' + escapeHtml(plan.kit.name) + ')</div>' : '') +
     '<div class="pc-per-class">Just <strong>$' + plan.perClass.toFixed(2) + '</strong> per class</div>' +
     installmentHTML +
   '</div>';
@@ -2054,6 +2074,8 @@ function buildParentPricingHTML() {
   const plans = getVisiblePlans();
   const meta = getPricingMeta();
   const provider = INSTALLMENT_PROVIDERS[meta.installment];
+  const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   const cardsHTML = plans.map(plan => {
     const duration = calcDurationFromClasses(plan.classes, meta.classesPerWeek);
@@ -2076,8 +2098,18 @@ function buildParentPricingHTML() {
         '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#999;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;">' + plan.classes + ' classes</p>' +
         (duration ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#ff6b35;margin:0 0 20px;font-weight:600;">~' + duration.display + ' at ' + meta.classesPerWeek + ' class' + (meta.classesPerWeek > 1 ? 'es' : '') + '/week</p>' : '') +
         '<div style="font-family:Georgia,serif;font-size:52px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;margin-bottom:10px;">$' + plan.finalPrice.toLocaleString() + '</div>' +
-        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.regular.toLocaleString() + '</p>' : '') +
-        (meta.discount > 0 && plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</p>' : '') +
+        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.totalRegular.toLocaleString() + '</p>' : '') +
+        (meta.discount > 0 && plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off classes)</p>' : '') +
+        (plan.kit ? (
+          '<div style="margin-top:16px;padding:12px 14px;background:#fafafa;border-radius:8px;border:1px solid #f0ebe5;">' +
+            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin:0 0 6px;">Price Breakdown</p>' +
+            '<table style="width:100%;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;">' +
+              '<tr><td>Classes' + (meta.discount > 0 ? ' (' + meta.discount + '% off)' : '') + '</td><td style="text-align:right;color:#1a1a1a;">$' + plan.classesAfterDiscount.toLocaleString() + '</td></tr>' +
+              '<tr><td>' + safe(plan.kit.name) + ' Kit</td><td style="text-align:right;color:#1a1a1a;">$' + plan.kitPrice + '</td></tr>' +
+              '<tr><td style="padding-top:6px;border-top:1px solid #f0ebe5;font-weight:600;color:#1a1a1a;">Total</td><td style="padding-top:6px;border-top:1px solid #f0ebe5;text-align:right;font-weight:700;color:#1a1a1a;">$' + plan.finalPrice.toLocaleString() + '</td></tr>' +
+            '</table>' +
+          '</div>'
+        ) : '') +
         '<div style="margin:24px 0 0;padding-top:20px;border-top:1px solid #f0ebe5;">' +
           '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#666;margin:0;">Just <strong style="color:#1a1a1a;font-size:20px;font-family:Georgia,serif;font-weight:500;">$' + plan.perClass.toFixed(2) + '</strong> per class</p>' +
         '</div>' +
