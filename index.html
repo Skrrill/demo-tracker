@@ -18,13 +18,13 @@
     --bg-elevated: #ffffff;
     --surface: rgba(255, 255, 255, 0.72);
     --surface-solid: #ffffff;
-    --surface-hover: rgba(255, 255, 255, 0.88);
+    --surface-hover: rgba(245, 245, 247, 0.95);
     --surface-2: rgba(245, 245, 247, 0.85);
-    --glass: rgba(255, 255, 255, 0.72);
-    --glass-strong: rgba(255, 255, 255, 0.85);
+    --glass: rgba(255, 255, 255, 0.78);
+    --glass-strong: rgba(255, 255, 255, 0.92);
 
     --border: rgba(0, 0, 0, 0.08);
-    --border-soft: rgba(0, 0, 0, 0.05);
+    --border-soft: rgba(0, 0, 0, 0.06);
     --border-strong: rgba(0, 0, 0, 0.12);
 
     --text: #1d1d1f;
@@ -58,8 +58,9 @@
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
 
-    --blur: blur(20px) saturate(180%);
-    --blur-strong: blur(40px) saturate(180%);
+    /* Lighter blur for perf - only used on header + modal */
+    --blur: blur(12px);
+    --blur-strong: blur(20px);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -123,9 +124,8 @@
     position: fixed; inset: 0;
     pointer-events: none;
     background:
-      radial-gradient(ellipse 80% 50% at 20% 0%, var(--accent-soft), transparent),
-      radial-gradient(ellipse 60% 50% at 80% 100%, var(--accent-soft), transparent);
-    opacity: 0.6;
+      radial-gradient(ellipse 80% 50% at 20% 0%, var(--accent-soft), transparent 60%);
+    opacity: 0.4;
     z-index: -1;
   }
 
@@ -184,9 +184,7 @@
     margin-bottom: 32px;
   }
   .stat {
-    background: var(--glass);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--surface-solid);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 24px 26px;
@@ -222,8 +220,6 @@
     gap: 4px;
     padding: 5px;
     background: var(--surface-2);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
     border: 1px solid var(--border-soft);
     border-radius: 980px;
     margin-bottom: 16px;
@@ -278,9 +274,7 @@
   #search {
     width: 100%;
     padding: 14px 20px;
-    background: var(--glass);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--surface-solid);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
     color: var(--text);
@@ -356,11 +350,9 @@
     transform: scale(0.98);
   }
   .btn-secondary {
-    background: var(--surface);
+    background: var(--surface-solid);
     color: var(--text);
     border: 1px solid var(--border);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
   }
   .btn-secondary:hover {
     background: var(--surface-hover);
@@ -388,9 +380,7 @@
   .search {
     flex: 1; min-width: 240px;
     padding: 12px 18px;
-    background: var(--surface);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--surface-solid);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
     color: var(--text);
@@ -433,14 +423,12 @@
     gap: 16px;
   }
   .demo-card {
-    background: var(--glass);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--surface-solid);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 24px;
     cursor: pointer;
-    transition: all 0.25s var(--ease);
+    transition: all 0.2s var(--ease);
     position: relative;
     overflow: hidden;
   }
@@ -616,6 +604,21 @@
   .form-group textarea::placeholder { color: var(--text-faint); }
   .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
+  /* Hide ugly number input spinners (Chrome, Safari, Edge, Firefox) */
+  .form-group input[type="number"]::-webkit-inner-spin-button,
+  .form-group input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+  .form-group input[type="number"],
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   .section-divider {
     grid-column: 1 / -1;
     font-size: 11px;
@@ -776,13 +779,11 @@
     margin-top: 8px;
   }
   .pricing-card {
-    background: var(--glass);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
+    background: var(--surface-solid);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 24px;
-    transition: all 0.25s var(--ease);
+    transition: all 0.2s var(--ease);
     position: relative;
     overflow: hidden;
   }
@@ -932,6 +933,14 @@
   ::selection {
     background: var(--accent-soft);
     color: var(--text);
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* ============ RESPONSIVE ============ */
