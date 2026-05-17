@@ -793,23 +793,28 @@
           <option value="none">No installment (pay in full)</option>
           <optgroup label="PayPal Pay Later">
             <option value="paypal_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest (6 weeks)</option>
-            <option value="paypal_monthly_6">Pay Monthly — 6 months, ~22% APR</option>
-            <option value="paypal_monthly_12">Pay Monthly — 12 months, ~22% APR</option>
-            <option value="paypal_monthly_24">Pay Monthly — 24 months, ~26% APR</option>
+            <option value="paypal_monthly_6">Pay Monthly — 6 months, APR varies (credit-based)</option>
+            <option value="paypal_monthly_12">Pay Monthly — 12 months, APR varies (credit-based)</option>
+            <option value="paypal_monthly_24">Pay Monthly — 24 months, APR varies (credit-based)</option>
           </optgroup>
           <optgroup label="Klarna">
             <option value="klarna_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest</option>
             <option value="klarna_pay_in_30">Pay in 30 days — Nothing now, full amount in 30 days, 0%</option>
-            <option value="klarna_monthly_6">Financing — 6 months, ~13.99% APR</option>
-            <option value="klarna_monthly_12">Financing — 12 months, ~13.99% APR</option>
-            <option value="klarna_monthly_24">Financing — 24 months, ~13.99% APR</option>
+            <option value="klarna_monthly_6">Financing — 6 months, APR varies (credit-based)</option>
+            <option value="klarna_monthly_12">Financing — 12 months, APR varies (credit-based)</option>
+            <option value="klarna_monthly_24">Financing — 24 months, APR varies (credit-based)</option>
           </optgroup>
           <optgroup label="Afterpay">
             <option value="afterpay_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest</option>
-            <option value="afterpay_monthly_6">Pay Monthly — 6 months, ~21% APR ($400-$4000 only)</option>
-            <option value="afterpay_monthly_12">Pay Monthly — 12 months, ~21% APR ($400-$4000 only)</option>
+            <option value="afterpay_monthly_6">Pay Monthly — 6 months, APR varies (credit-based)</option>
+            <option value="afterpay_monthly_12">Pay Monthly — 12 months, APR varies (credit-based)</option>
           </optgroup>
         </select>
+      </div>
+      <div class="form-group full" id="apr-input-row" style="display:none;">
+        <label for="pricing-apr">Estimated APR % <span style="color:var(--text-faint);text-transform:none;letter-spacing:normal;font-weight:400;font-size:11px;">(actual APR depends on credit check at signup)</span></label>
+        <input type="number" id="pricing-apr" value="18" min="0" max="36" step="0.01">
+        <p id="apr-range-hint" style="font-size:11px;color:var(--text-faint);margin-top:6px;font-family:'JetBrains Mono',monospace;line-height:1.5;"></p>
       </div>
     </div>
 
@@ -1728,6 +1733,8 @@ const PRICING_DATA = {
 };
 
 // Real installment plan data (sourced from PayPal/Klarna/Afterpay official pages)
+// Pay-in-4 plans: ALWAYS 0% APR, no credit check.
+// Monthly plans: APR is variable (range shown), depends on credit approval at checkout.
 const INSTALLMENT_PROVIDERS = {
   paypal_pay_in_4: {
     name: 'PayPal · Pay in 4',
@@ -1736,36 +1743,40 @@ const INSTALLMENT_PROVIDERS = {
     intervalDays: 14,
     firstPaymentDays: 0,
     apr: 0,
+    aprFixed: true, // 0% is guaranteed
     note: 'First payment today, then 3 more every 2 weeks. No interest, no fees.',
     minAmount: 30, maxAmount: 1500
   },
   paypal_monthly_6: {
     name: 'PayPal · Pay Monthly (6 months)',
-    tagline: '6 monthly payments at ~22% APR',
+    tagline: 'APR 9.99-35.99% (based on credit approval)',
     payments: 6,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 22,
-    note: 'Nothing due at checkout. First payment 30 days later.',
+    aprRange: [9.99, 35.99],
+    aprFixed: false,
+    note: 'Nothing due at checkout. APR depends on credit check at signup.',
     minAmount: 199, maxAmount: 10000
   },
   paypal_monthly_12: {
     name: 'PayPal · Pay Monthly (12 months)',
-    tagline: '12 monthly payments at ~22% APR',
+    tagline: 'APR 9.99-35.99% (based on credit approval)',
     payments: 12,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 22,
-    note: 'Nothing due at checkout. First payment 30 days later.',
+    aprRange: [9.99, 35.99],
+    aprFixed: false,
+    note: 'Nothing due at checkout. APR depends on credit check at signup.',
     minAmount: 199, maxAmount: 10000
   },
   paypal_monthly_24: {
     name: 'PayPal · Pay Monthly (24 months)',
-    tagline: '24 monthly payments at ~26% APR',
+    tagline: 'APR 9.99-35.99% (based on credit approval)',
     payments: 24,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 26,
+    aprRange: [9.99, 35.99],
+    aprFixed: false,
     note: 'Nothing due at checkout. Best for larger purchases.',
     minAmount: 199, maxAmount: 10000
   },
@@ -1776,46 +1787,51 @@ const INSTALLMENT_PROVIDERS = {
     intervalDays: 14,
     firstPaymentDays: 0,
     apr: 0,
+    aprFixed: true,
     note: '25% upfront, then 3 more every 2 weeks. No interest.',
     minAmount: 35, maxAmount: 1000
   },
   klarna_pay_in_30: {
     name: 'Klarna · Pay in 30 days',
-    tagline: 'Pay the full amount in 30 days',
+    tagline: 'Pay the full amount in 30 days, 0% APR',
     payments: 1,
     intervalDays: 0,
     firstPaymentDays: 30,
     apr: 0,
+    aprFixed: true,
     note: 'Nothing now. Pay the full amount 30 days later. No interest.',
     minAmount: 35, maxAmount: 1000
   },
   klarna_monthly_6: {
     name: 'Klarna · Financing (6 months)',
-    tagline: '6 monthly payments at ~13.99% APR',
+    tagline: 'APR 0-35.99% (based on credit approval)',
     payments: 6,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 13.99,
-    note: 'Subject to credit approval. APR varies 0-35.99%.',
+    aprRange: [0, 35.99],
+    aprFixed: false,
+    note: 'Subject to credit approval. Best credit may qualify for 0% APR.',
     minAmount: 100, maxAmount: 10000
   },
   klarna_monthly_12: {
     name: 'Klarna · Financing (12 months)',
-    tagline: '12 monthly payments at ~13.99% APR',
+    tagline: 'APR 0-35.99% (based on credit approval)',
     payments: 12,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 13.99,
-    note: 'Subject to credit approval. APR varies 0-35.99%.',
+    aprRange: [0, 35.99],
+    aprFixed: false,
+    note: 'Subject to credit approval. Best credit may qualify for 0% APR.',
     minAmount: 100, maxAmount: 10000
   },
   klarna_monthly_24: {
     name: 'Klarna · Financing (24 months)',
-    tagline: '24 monthly payments at ~13.99% APR',
+    tagline: 'APR 0-35.99% (based on credit approval)',
     payments: 24,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 13.99,
+    aprRange: [0, 35.99],
+    aprFixed: false,
     note: 'Subject to credit approval. Best for large purchases.',
     minAmount: 100, maxAmount: 10000
   },
@@ -1826,35 +1842,50 @@ const INSTALLMENT_PROVIDERS = {
     intervalDays: 14,
     firstPaymentDays: 0,
     apr: 0,
+    aprFixed: true,
     note: '25% upfront, then 3 more every 2 weeks. No interest if on time.',
     minAmount: 35, maxAmount: 2000
   },
   afterpay_monthly_6: {
     name: 'Afterpay · Pay Monthly (6 months)',
-    tagline: '6 monthly payments at ~6.99-35.99% APR',
+    tagline: 'APR 6.99-35.99% (based on credit approval)',
     payments: 6,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 21,
+    aprRange: [6.99, 35.99],
+    aprFixed: false,
     note: 'For purchases $400-$4,000. APR varies by credit.',
     minAmount: 400, maxAmount: 4000
   },
   afterpay_monthly_12: {
     name: 'Afterpay · Pay Monthly (12 months)',
-    tagline: '12 monthly payments at ~6.99-35.99% APR',
+    tagline: 'APR 6.99-35.99% (based on credit approval)',
     payments: 12,
     intervalDays: 30,
     firstPaymentDays: 30,
-    apr: 21,
+    aprRange: [6.99, 35.99],
+    aprFixed: false,
     note: 'For purchases $400-$4,000. APR varies by credit.',
     minAmount: 400, maxAmount: 4000
   }
 };
 
 // Calculate installment breakdown with proper APR math
-function calcInstallment(totalAmount, provider) {
+// customApr (optional): override the provider's default APR
+function calcInstallment(totalAmount, provider, customApr) {
   if (!provider) return null;
-  const apr = provider.apr / 100;
+  let aprToUse;
+  if (provider.aprFixed) {
+    aprToUse = provider.apr; // 0% guaranteed
+  } else if (typeof customApr === 'number' && customApr >= 0) {
+    aprToUse = customApr;
+  } else if (provider.aprRange) {
+    // Default to midpoint of range
+    aprToUse = (provider.aprRange[0] + provider.aprRange[1]) / 2;
+  } else {
+    aprToUse = provider.apr || 0;
+  }
+  const apr = aprToUse / 100;
   let perPayment;
   let totalCost;
 
@@ -1901,7 +1932,9 @@ function calcInstallment(totalAmount, provider) {
     perPayment: perPayment,
     totalCost: totalCost,
     totalInterest: totalInterest,
-    apr: provider.apr,
+    apr: aprToUse,
+    aprFixed: provider.aprFixed,
+    aprRange: provider.aprRange,
     payments: provider.payments,
     schedule: schedule,
     durationDays: durationDays,
@@ -2004,6 +2037,8 @@ function getPricingMeta() {
   const level = document.getElementById('pricing-level').value;
   const format = document.getElementById('pricing-format').value;
   if (!PRICING_DATA[course] || !PRICING_DATA[course][level]) return {};
+  const aprEl = document.getElementById('pricing-apr');
+  const customApr = aprEl ? (parseFloat(aprEl.value) || 0) : null;
   return {
     course: course,
     courseLabel: course.charAt(0).toUpperCase() + course.slice(1),
@@ -2014,7 +2049,8 @@ function getPricingMeta() {
     formatLabel: format === 'oto' ? '1-on-1 Classes' : 'Small Group Classes',
     installment: document.getElementById('pricing-installment').value,
     discount: parseFloat(document.getElementById('pricing-discount').value) || 0,
-    classesPerWeek: parseFloat(document.getElementById('pricing-classes-per-week').value) || 2
+    classesPerWeek: parseFloat(document.getElementById('pricing-classes-per-week').value) || 2,
+    customApr: customApr
   };
 }
 
@@ -2051,13 +2087,26 @@ function renderPricingPreview() {
   }
 
   const provider = INSTALLMENT_PROVIDERS[meta.installment];
+
+  // Show/hide APR input based on whether the selected plan has variable APR
+  const aprRow = document.getElementById('apr-input-row');
+  const aprHint = document.getElementById('apr-range-hint');
+  if (provider && !provider.aprFixed && provider.aprRange) {
+    aprRow.style.display = '';
+    const [lo, hi] = provider.aprRange;
+    const mid = ((lo + hi) / 2).toFixed(1);
+    aprHint.innerHTML = 'Range: <strong>' + lo + '% — ' + hi + '%</strong>. Midpoint default: ' + mid + '%. <br>Excellent credit ≈ ' + lo + '%, average ≈ ' + mid + '%, lower credit ≈ ' + hi + '%.';
+  } else {
+    aprRow.style.display = 'none';
+  }
+
   container.innerHTML = '<div class="pricing-cards">' +
     plans.map(p => renderPricingCard(p, meta, provider)).join('') + '</div>';
 }
 
 function renderPricingCard(plan, meta, provider) {
   const duration = calcDurationFromClasses(plan.classes, meta.classesPerWeek);
-  const inst = provider ? calcInstallment(plan.finalPrice, provider) : null;
+  const inst = provider ? calcInstallment(plan.finalPrice, provider, meta.customApr) : null;
 
   let installmentHTML = '';
   if (inst) {
@@ -2108,17 +2157,26 @@ function buildParentPricingHTML() {
 
   const cardsHTML = plans.map(plan => {
     const duration = calcDurationFromClasses(plan.classes, meta.classesPerWeek);
-    const inst = provider ? calcInstallment(plan.finalPrice, provider) : null;
+    const inst = provider ? calcInstallment(plan.finalPrice, provider, meta.customApr) : null;
 
     const installmentBlock = inst ? (
       '<div style="margin-top:20px;padding:16px 18px;background:#fff8f4;border:1px solid #ffd4bd;border-radius:10px;">' +
         '<p style="font-family:Helvetica,Arial,sans-serif;font-size:10px;color:#ff6b35;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin:0 0 8px;">' + provider.name + '</p>' +
-        '<p style="font-family:Georgia,serif;font-size:28px;font-weight:500;color:#1a1a1a;margin:0;line-height:1;letter-spacing:-0.5px;">$' + inst.perPayment.toFixed(2) + ' <span style="font-size:16px;color:#666;font-style:italic;">× ' + inst.payments + '</span></p>' +
+        '<p style="font-family:Georgia,serif;font-size:28px;font-weight:500;color:#1a1a1a;margin:0;line-height:1;letter-spacing:-0.5px;">$' + inst.perPayment.toFixed(2) + ' <span style="font-size:16px;color:#666;font-style:italic;">× ' + inst.payments + '</span>' +
+          (!inst.aprFixed ? ' <span style="font-size:13px;color:#999;font-style:italic;">est.</span>' : '') +
+        '</p>' +
         '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#666;margin:8px 0 0;line-height:1.5;">' +
           (inst.firstPaymentToday ? '✓ First payment today' : '✓ Nothing today — first payment in ' + provider.firstPaymentDays + ' days') + '<br>' +
           '✓ ' + inst.durationMonths + ' month' + (inst.durationMonths !== 1 ? 's' : '') + ' to complete' +
-          (inst.totalInterest > 0 ? '<br>• Total with interest: $' + inst.totalCost.toFixed(2) : '<br>✓ No interest, no fees') +
+          (inst.totalInterest > 0
+            ? '<br>• Estimated total: $' + inst.totalCost.toFixed(2) + ' (at ' + inst.apr.toFixed(2) + '% APR)'
+            : '<br>✓ No interest, no fees') +
         '</p>' +
+        (!inst.aprFixed && inst.aprRange ? (
+          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#999;margin:8px 0 0;line-height:1.5;font-style:italic;">' +
+            '* Actual APR depends on credit approval at signup. Range: ' + inst.aprRange[0] + '%–' + inst.aprRange[1] + '%.' +
+          '</p>'
+        ) : '') +
       '</div>'
     ) : '';
 
@@ -2158,7 +2216,7 @@ function buildParentPricingHTML() {
   let timelineHTML = '';
   if (provider && plans.length > 0) {
     const firstPlan = plans[0];
-    const inst = calcInstallment(firstPlan.finalPrice, provider);
+    const inst = calcInstallment(firstPlan.finalPrice, provider, meta.customApr);
     if (inst && inst.schedule.length > 1) {
       const scheduleRows = inst.schedule.map((s, idx) => {
         const monthsFromNow = Math.round(s.dayOffset / 30);
@@ -2177,10 +2235,12 @@ function buildParentPricingHTML() {
         '<div style="margin-top:48px;background:#ffffff;border-radius:16px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,0.04);">' +
           '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#ff6b35;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Payment Timeline</p>' +
           '<h3 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:#1a1a1a;margin:0 0 4px;letter-spacing:-0.5px;">' + firstPlan.classes + '-class plan with ' + provider.name + '</h3>' +
-          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:0 0 20px;">Here\'s exactly what you\'ll pay and when:</p>' +
+          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:0 0 20px;">' +
+            (inst.aprFixed ? "Here's exactly what you'll pay and when:" : "Estimated schedule at " + inst.apr.toFixed(2) + "% APR (actual APR set at credit approval):") +
+          '</p>' +
           '<table style="width:100%;border-collapse:collapse;">' + scheduleRows + '</table>' +
           (inst.totalInterest > 0 ?
-            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:16px 0 0;text-align:right;">Total paid: <strong>$' + inst.totalCost.toFixed(2) + '</strong> (includes $' + inst.totalInterest.toFixed(2) + ' interest at ' + inst.apr + '% APR)</p>'
+            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:16px 0 0;text-align:right;">Estimated total: <strong>$' + inst.totalCost.toFixed(2) + '</strong> (incl. $' + inst.totalInterest.toFixed(2) + ' interest at ' + inst.apr.toFixed(2) + '% APR' + (inst.aprFixed ? '' : ' — estimate') + ')</p>'
             : '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;margin:16px 0 0;text-align:right;font-weight:600;">✓ Total: $' + firstPlan.finalPrice.toFixed(2) + ' — no interest, no fees</p>'
           ) +
         '</div>';
@@ -3317,7 +3377,7 @@ function bindUI() {
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
   document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
-  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment', 'pricing-discount', 'pricing-classes-per-week', 'pricing-custom-classes'].forEach(id => {
+  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment', 'pricing-discount', 'pricing-classes-per-week', 'pricing-custom-classes', 'pricing-apr'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', renderPricingPreview);
