@@ -446,6 +446,13 @@
     color: var(--text-dim);
     margin-bottom: 4px;
   }
+  .pricing-card .pc-duration {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
   .pricing-card .pc-name {
     font-family: 'Fraunces', serif;
     font-size: 20px;
@@ -723,11 +730,11 @@
 </div>
 
 <div class="modal-overlay" id="pricing-modal">
-  <div class="modal" style="max-width:980px;">
+  <div class="modal" style="max-width:1100px;">
     <button class="modal-close" id="pricing-close">×</button>
     <h2>Pricing Presenter</h2>
     <p style="font-size:13px;color:var(--text-dim);margin:-16px 0 20px;">
-      Pick the program → show the parent only what they need to see.
+      Customize on the fly → show parent a clean breakdown with payment timeline.
     </p>
 
     <div class="form-grid">
@@ -753,12 +760,47 @@
         </select>
       </div>
       <div class="form-group">
+        <label for="pricing-discount">Discount %</label>
+        <input type="number" id="pricing-discount" value="25" min="0" max="80" step="1">
+      </div>
+      <div class="form-group">
+        <label for="pricing-classes-per-week">Classes per Week</label>
+        <select id="pricing-classes-per-week">
+          <option value="1">1 / week</option>
+          <option value="2" selected>2 / week</option>
+          <option value="3">3 / week</option>
+          <option value="4">4 / week</option>
+          <option value="5">5 / week</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="pricing-custom-classes">Add Custom Plan</label>
+        <select id="pricing-custom-classes">
+          <option value="">— Show default 3-4 plans —</option>
+        </select>
+      </div>
+      <div class="form-group full">
         <label for="pricing-installment">Installment Plan</label>
         <select id="pricing-installment">
-          <option value="none">Pay in full (one time)</option>
-          <option value="paypal">PayPal Pay Later (4 payments)</option>
-          <option value="klarna">Klarna (4 payments)</option>
-          <option value="afterpay">Afterpay (4 payments)</option>
+          <option value="none">No installment (pay in full)</option>
+          <optgroup label="PayPal Pay Later">
+            <option value="paypal_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest (6 weeks)</option>
+            <option value="paypal_monthly_6">Pay Monthly — 6 months, ~22% APR</option>
+            <option value="paypal_monthly_12">Pay Monthly — 12 months, ~22% APR</option>
+            <option value="paypal_monthly_24">Pay Monthly — 24 months, ~26% APR</option>
+          </optgroup>
+          <optgroup label="Klarna">
+            <option value="klarna_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest</option>
+            <option value="klarna_pay_in_30">Pay in 30 days — Nothing now, full amount in 30 days, 0%</option>
+            <option value="klarna_monthly_6">Financing — 6 months, ~13.99% APR</option>
+            <option value="klarna_monthly_12">Financing — 12 months, ~13.99% APR</option>
+            <option value="klarna_monthly_24">Financing — 24 months, ~13.99% APR</option>
+          </optgroup>
+          <optgroup label="Afterpay">
+            <option value="afterpay_pay_in_4">Pay in 4 — 4 bi-weekly payments, 0% interest</option>
+            <option value="afterpay_monthly_6">Pay Monthly — 6 months, ~21% APR ($400-$4000 only)</option>
+            <option value="afterpay_monthly_12">Pay Monthly — 12 months, ~21% APR ($400-$4000 only)</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -769,7 +811,6 @@
 
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" id="pricing-cancel">Close</button>
-      <button type="button" class="btn btn-secondary" id="pricing-share-image">📸 Open as Image (for sharing)</button>
       <button type="button" class="btn btn-primary" id="pricing-share-link">✨ Show to Parent (Full Screen)</button>
     </div>
   </div>
@@ -1558,71 +1599,320 @@ async function importData(event) {
 }
 
 // ============ PRICING PRESENTER ============
+// Base regular prices (without any discounts applied)
 const PRICING_DATA = {
   coding: {
     lc: {
       label: 'Little Champs',
       gradeRange: 'Grade 2-3',
       oto: [
-        { classes: 30, price: 619, regular: 825, save: 206, name: 'Foundation', perClass: 20.63 },
-        { classes: 60, price: 1073, regular: 1650, save: 578, name: 'Most Popular', perClass: 17.88, highlight: true }
+        { classes: 15, regular: 413, featured: false },
+        { classes: 30, regular: 825, featured: true },
+        { classes: 60, regular: 1650, featured: true }
       ],
       otm: [
-        { classes: 30, price: 506, regular: 675, save: 169, name: 'Foundation', perClass: 16.88 },
-        { classes: 60, price: 829, regular: 1275, save: 446, name: 'Most Popular', perClass: 13.81, highlight: true }
+        { classes: 15, regular: 338, featured: false },
+        { classes: 30, regular: 675, featured: true },
+        { classes: 60, regular: 1275, featured: true }
       ]
     },
     jc: {
       label: 'Junior Champs',
       gradeRange: 'Grade 4-6',
       oto: [
-        { classes: 30, price: 619, regular: 825, save: 206, name: 'Foundation', perClass: 20.63 },
-        { classes: 60, price: 1073, regular: 1650, save: 578, name: 'Most Popular', perClass: 17.88 },
-        { classes: 90, price: 1609, regular: 2475, save: 866, name: 'Pro', perClass: 17.88 },
-        { classes: 135, price: 1671, regular: 3713, save: 2042, name: 'Best Value', perClass: 12.37 },
-        { classes: 282, price: 3490, regular: 7755, save: 4265, name: 'Maestro', perClass: 12.37, highlight: true }
+        { classes: 15, regular: 413, featured: false },
+        { classes: 30, regular: 825, featured: true },
+        { classes: 60, regular: 1650, featured: true },
+        { classes: 90, regular: 2475, featured: true },
+        { classes: 135, regular: 3713, featured: false },
+        { classes: 182, regular: 5005, featured: false },
+        { classes: 282, regular: 7755, featured: false }
       ],
       otm: [
-        { classes: 30, price: 506, regular: 675, save: 169, name: 'Foundation', perClass: 16.88 },
-        { classes: 60, price: 829, regular: 1275, save: 446, name: 'Most Popular', perClass: 13.81 },
-        { classes: 90, price: 1243, regular: 1913, save: 669, name: 'Pro', perClass: 13.81 },
-        { classes: 135, price: 1181, regular: 2363, save: 1181, name: 'Best Value', perClass: 8.75 },
-        { classes: 282, price: 2468, regular: 4935, save: 2468, name: 'Maestro', perClass: 8.75, highlight: true }
+        { classes: 15, regular: 338, featured: false },
+        { classes: 30, regular: 675, featured: true },
+        { classes: 60, regular: 1275, featured: true },
+        { classes: 90, regular: 1913, featured: true },
+        { classes: 135, regular: 2363, featured: false },
+        { classes: 182, regular: 3185, featured: false },
+        { classes: 282, regular: 4935, featured: false }
       ]
     },
     sc: {
       label: 'Senior Champs',
       gradeRange: 'Grade 7-9',
       oto: [
-        { classes: 30, price: 619, regular: 825, save: 206, name: 'Foundation', perClass: 20.63 },
-        { classes: 60, price: 1073, regular: 1650, save: 578, name: 'Most Popular', perClass: 17.88 },
-        { classes: 105, price: 1877, regular: 2888, save: 1011, name: 'Pro', perClass: 17.88 },
-        { classes: 165, price: 2042, regular: 4538, save: 2496, name: 'Best Value', perClass: 12.37 },
-        { classes: 312, price: 3861, regular: 8580, save: 4719, name: 'Maestro', perClass: 12.37, highlight: true }
+        { classes: 15, regular: 413, featured: false },
+        { classes: 30, regular: 825, featured: true },
+        { classes: 60, regular: 1650, featured: true },
+        { classes: 105, regular: 2888, featured: true },
+        { classes: 165, regular: 4538, featured: false },
+        { classes: 220, regular: 6050, featured: false },
+        { classes: 312, regular: 8580, featured: false }
       ],
       otm: [
-        { classes: 30, price: 506, regular: 675, save: 169, name: 'Foundation', perClass: 16.88 },
-        { classes: 60, price: 829, regular: 1275, save: 446, name: 'Most Popular', perClass: 13.81 },
-        { classes: 105, price: 1450, regular: 2231, save: 781, name: 'Pro', perClass: 13.81 },
-        { classes: 165, price: 1444, regular: 2888, save: 1444, name: 'Best Value', perClass: 8.75 },
-        { classes: 312, price: 2730, regular: 5460, save: 2730, name: 'Maestro', perClass: 8.75, highlight: true }
+        { classes: 15, regular: 338, featured: false },
+        { classes: 30, regular: 675, featured: true },
+        { classes: 60, regular: 1275, featured: true },
+        { classes: 105, regular: 2231, featured: true },
+        { classes: 165, regular: 2888, featured: false },
+        { classes: 220, regular: 3850, featured: false },
+        { classes: 312, regular: 5460, featured: false }
       ]
     }
   }
 };
 
+// Real installment plan data (sourced from PayPal/Klarna/Afterpay official pages)
 const INSTALLMENT_PROVIDERS = {
-  paypal: { name: 'PayPal Pay Later', tagline: '4 interest-free payments', icon: '💳' },
-  klarna: { name: 'Klarna', tagline: '4 payments, no interest', icon: '💳' },
-  afterpay: { name: 'Afterpay', tagline: '4 payments over 6 weeks', icon: '💳' }
+  paypal_pay_in_4: {
+    name: 'PayPal · Pay in 4',
+    tagline: '4 interest-free payments over 6 weeks',
+    payments: 4,
+    intervalDays: 14,
+    firstPaymentDays: 0,
+    apr: 0,
+    note: 'First payment today, then 3 more every 2 weeks. No interest, no fees.',
+    minAmount: 30, maxAmount: 1500
+  },
+  paypal_monthly_6: {
+    name: 'PayPal · Pay Monthly (6 months)',
+    tagline: '6 monthly payments at ~22% APR',
+    payments: 6,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 22,
+    note: 'Nothing due at checkout. First payment 30 days later.',
+    minAmount: 199, maxAmount: 10000
+  },
+  paypal_monthly_12: {
+    name: 'PayPal · Pay Monthly (12 months)',
+    tagline: '12 monthly payments at ~22% APR',
+    payments: 12,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 22,
+    note: 'Nothing due at checkout. First payment 30 days later.',
+    minAmount: 199, maxAmount: 10000
+  },
+  paypal_monthly_24: {
+    name: 'PayPal · Pay Monthly (24 months)',
+    tagline: '24 monthly payments at ~26% APR',
+    payments: 24,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 26,
+    note: 'Nothing due at checkout. Best for larger purchases.',
+    minAmount: 199, maxAmount: 10000
+  },
+  klarna_pay_in_4: {
+    name: 'Klarna · Pay in 4',
+    tagline: '4 interest-free payments, every 2 weeks',
+    payments: 4,
+    intervalDays: 14,
+    firstPaymentDays: 0,
+    apr: 0,
+    note: '25% upfront, then 3 more every 2 weeks. No interest.',
+    minAmount: 35, maxAmount: 1000
+  },
+  klarna_pay_in_30: {
+    name: 'Klarna · Pay in 30 days',
+    tagline: 'Pay the full amount in 30 days',
+    payments: 1,
+    intervalDays: 0,
+    firstPaymentDays: 30,
+    apr: 0,
+    note: 'Nothing now. Pay the full amount 30 days later. No interest.',
+    minAmount: 35, maxAmount: 1000
+  },
+  klarna_monthly_6: {
+    name: 'Klarna · Financing (6 months)',
+    tagline: '6 monthly payments at ~13.99% APR',
+    payments: 6,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 13.99,
+    note: 'Subject to credit approval. APR varies 0-35.99%.',
+    minAmount: 100, maxAmount: 10000
+  },
+  klarna_monthly_12: {
+    name: 'Klarna · Financing (12 months)',
+    tagline: '12 monthly payments at ~13.99% APR',
+    payments: 12,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 13.99,
+    note: 'Subject to credit approval. APR varies 0-35.99%.',
+    minAmount: 100, maxAmount: 10000
+  },
+  klarna_monthly_24: {
+    name: 'Klarna · Financing (24 months)',
+    tagline: '24 monthly payments at ~13.99% APR',
+    payments: 24,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 13.99,
+    note: 'Subject to credit approval. Best for large purchases.',
+    minAmount: 100, maxAmount: 10000
+  },
+  afterpay_pay_in_4: {
+    name: 'Afterpay · Pay in 4',
+    tagline: '4 interest-free payments over 6 weeks',
+    payments: 4,
+    intervalDays: 14,
+    firstPaymentDays: 0,
+    apr: 0,
+    note: '25% upfront, then 3 more every 2 weeks. No interest if on time.',
+    minAmount: 35, maxAmount: 2000
+  },
+  afterpay_monthly_6: {
+    name: 'Afterpay · Pay Monthly (6 months)',
+    tagline: '6 monthly payments at ~6.99-35.99% APR',
+    payments: 6,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 21,
+    note: 'For purchases $400-$4,000. APR varies by credit.',
+    minAmount: 400, maxAmount: 4000
+  },
+  afterpay_monthly_12: {
+    name: 'Afterpay · Pay Monthly (12 months)',
+    tagline: '12 monthly payments at ~6.99-35.99% APR',
+    payments: 12,
+    intervalDays: 30,
+    firstPaymentDays: 30,
+    apr: 21,
+    note: 'For purchases $400-$4,000. APR varies by credit.',
+    minAmount: 400, maxAmount: 4000
+  }
 };
 
+// Calculate installment breakdown with proper APR math
+function calcInstallment(totalAmount, provider) {
+  if (!provider) return null;
+  const apr = provider.apr / 100;
+  let perPayment;
+  let totalCost;
+
+  if (apr === 0) {
+    perPayment = totalAmount / provider.payments;
+    totalCost = totalAmount;
+  } else {
+    // Monthly interest rate
+    const r = apr / 12;
+    const n = provider.payments;
+    // Standard amortization formula
+    perPayment = (totalAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    totalCost = perPayment * n;
+  }
+
+  const totalInterest = totalCost - totalAmount;
+
+  // Build timeline
+  const schedule = [];
+  const today = new Date();
+  if (provider.intervalDays > 0) {
+    for (let i = 0; i < provider.payments; i++) {
+      const dayOffset = i === 0 ? provider.firstPaymentDays : provider.firstPaymentDays + (i * provider.intervalDays);
+      const date = new Date(today.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+      schedule.push({
+        num: i + 1,
+        amount: perPayment,
+        date: date,
+        dayOffset: dayOffset
+      });
+    }
+  } else {
+    // Single payment (Pay in 30)
+    const date = new Date(today.getTime() + provider.firstPaymentDays * 24 * 60 * 60 * 1000);
+    schedule.push({ num: 1, amount: totalAmount, date: date, dayOffset: provider.firstPaymentDays });
+  }
+
+  // Duration in months
+  const lastPayment = schedule[schedule.length - 1];
+  const durationDays = lastPayment.dayOffset;
+  const durationMonths = Math.round(durationDays / 30);
+
+  return {
+    perPayment: perPayment,
+    totalCost: totalCost,
+    totalInterest: totalInterest,
+    apr: provider.apr,
+    payments: provider.payments,
+    schedule: schedule,
+    durationDays: durationDays,
+    durationMonths: durationMonths,
+    firstPaymentToday: provider.firstPaymentDays === 0
+  };
+}
+
+// Calculate curriculum duration based on classes per week
+function calcDurationFromClasses(totalClasses, classesPerWeek) {
+  if (!totalClasses || !classesPerWeek || classesPerWeek <= 0) return null;
+  const weeks = totalClasses / classesPerWeek;
+  const months = weeks / 4.33;
+  const years = months / 12;
+  let display;
+  if (months < 1) {
+    display = Math.round(weeks) + ' weeks';
+  } else if (months < 12) {
+    display = Math.round(months) + ' months';
+  } else {
+    const yr = Math.floor(years);
+    const remMonths = Math.round((years - yr) * 12);
+    if (remMonths === 0) {
+      display = yr + ' year' + (yr > 1 ? 's' : '');
+    } else {
+      display = yr + ' year' + (yr > 1 ? 's' : '') + ' ' + remMonths + ' month' + (remMonths > 1 ? 's' : '');
+    }
+  }
+  return { weeks: Math.round(weeks), months: Math.round(months), display: display };
+}
+
+// Get pricing plans with discount applied
 function getPricingPlans() {
   const course = document.getElementById('pricing-course').value;
   const level = document.getElementById('pricing-level').value;
   const format = document.getElementById('pricing-format').value;
+  const discount = parseFloat(document.getElementById('pricing-discount').value) || 0;
+  const customClasses = parseInt(document.getElementById('pricing-custom-classes').value) || 0;
+
   if (!PRICING_DATA[course] || !PRICING_DATA[course][level]) return [];
-  return PRICING_DATA[course][level][format] || [];
+  let plans = (PRICING_DATA[course][level][format] || []).slice();
+
+  // Apply discount
+  plans = plans.map(p => {
+    const finalPrice = Math.round(p.regular * (1 - discount / 100));
+    return {
+      ...p,
+      finalPrice: finalPrice,
+      save: p.regular - finalPrice,
+      perClass: finalPrice / p.classes
+    };
+  });
+
+  // If custom classes set, replace last featured plan with custom
+  if (customClasses > 0) {
+    const customPlan = plans.find(p => p.classes === customClasses);
+    if (customPlan) {
+      // Mark this one as featured/visible
+      plans.forEach(p => { p.showInPresenter = (p === customPlan); });
+      const featured = plans.filter(p => p.featured);
+      featured.forEach(p => { p.showInPresenter = true; });
+      // Add the custom plan if not already in featured
+      if (!customPlan.featured) {
+        customPlan.showInPresenter = true;
+      }
+    }
+  } else {
+    plans.forEach(p => { p.showInPresenter = p.featured; });
+  }
+
+  return plans;
+}
+
+function getVisiblePlans() {
+  return getPricingPlans().filter(p => p.showInPresenter);
 }
 
 function getPricingMeta() {
@@ -1638,40 +1928,64 @@ function getPricingMeta() {
     gradeRange: PRICING_DATA[course][level].gradeRange,
     format: format,
     formatLabel: format === 'oto' ? '1-on-1 Classes' : 'Small Group Classes',
-    installment: document.getElementById('pricing-installment').value
+    installment: document.getElementById('pricing-installment').value,
+    discount: parseFloat(document.getElementById('pricing-discount').value) || 0,
+    classesPerWeek: parseFloat(document.getElementById('pricing-classes-per-week').value) || 2
   };
 }
 
 function renderPricingPreview() {
-  const plans = getPricingPlans();
+  const allPlans = getPricingPlans();
   const meta = getPricingMeta();
   const container = document.getElementById('pricing-cards-preview');
+
+  // Build custom class dropdown
+  const customSelect = document.getElementById('pricing-custom-classes');
+  const currentValue = customSelect.value;
+  customSelect.innerHTML = '<option value="">— Default 3-4 plans —</option>' +
+    allPlans.filter(p => !p.featured).map(p =>
+      '<option value="' + p.classes + '">' + p.classes + ' classes</option>'
+    ).join('');
+  if (currentValue) customSelect.value = currentValue;
+
+  const plans = getVisiblePlans();
   if (plans.length === 0) {
     container.innerHTML = '<p style="color:var(--text-faint);text-align:center;padding:20px;">No plans configured.</p>';
     return;
   }
-  container.innerHTML = '<div class="pricing-cards">' + plans.map(p => renderPricingCard(p, meta)).join('') + '</div>';
+
+  const provider = INSTALLMENT_PROVIDERS[meta.installment];
+  container.innerHTML = '<div class="pricing-cards">' +
+    plans.map(p => renderPricingCard(p, meta, provider)).join('') + '</div>';
 }
 
-function renderPricingCard(plan, meta) {
-  const inst = meta.installment !== 'none' ? INSTALLMENT_PROVIDERS[meta.installment] : null;
-  const installmentAmount = inst ? (plan.price / 4) : 0;
+function renderPricingCard(plan, meta, provider) {
+  const duration = calcDurationFromClasses(plan.classes, meta.classesPerWeek);
+  const inst = provider ? calcInstallment(plan.finalPrice, provider) : null;
 
-  return '<div class="pricing-card' + (plan.highlight ? ' highlight' : '') + '">' +
-    (plan.highlight ? '<span class="pc-badge">Best Value</span>' : '') +
-    '<div class="pc-classes">' + plan.classes + ' classes</div>' +
-    '<div class="pc-name">' + plan.name + '</div>' +
-    '<div class="pc-price">$' + plan.price.toLocaleString() + '</div>' +
-    '<div class="pc-regular">Regular: $' + plan.regular.toLocaleString() + '</div>' +
-    '<div class="pc-save">You save $' + plan.save.toLocaleString() + '</div>' +
-    '<div class="pc-per-class">Only <strong>$' + plan.perClass.toFixed(2) + '</strong> per class</div>' +
-    (inst ? (
+  let installmentHTML = '';
+  if (inst) {
+    const firstNote = inst.firstPaymentToday
+      ? 'First payment today'
+      : 'Nothing today, starts in ' + provider.firstPaymentDays + ' days';
+    installmentHTML =
       '<div class="pc-installments">' +
-        '<div class="pc-inst-label">' + inst.name + '</div>' +
-        '<div class="pc-inst-amount">$' + installmentAmount.toFixed(2) + ' × 4</div>' +
-        '<div class="pc-inst-detail">' + inst.tagline + '</div>' +
-      '</div>'
-    ) : '') +
+        '<div class="pc-inst-label">' + escapeHtml(provider.name) + '</div>' +
+        '<div class="pc-inst-amount">$' + inst.perPayment.toFixed(2) + ' <span style="font-size:13px;color:var(--text-dim);">× ' + inst.payments + '</span></div>' +
+        '<div class="pc-inst-detail">' + firstNote + ' · ' + inst.durationMonths + ' month' + (inst.durationMonths !== 1 ? 's' : '') + ' total' +
+        (inst.totalInterest > 0 ? ' · <span style="color:var(--warning);">+$' + inst.totalInterest.toFixed(0) + ' interest</span>' : '') +
+        '</div>' +
+      '</div>';
+  }
+
+  return '<div class="pricing-card">' +
+    '<div class="pc-classes">' + plan.classes + ' classes</div>' +
+    (duration ? '<div class="pc-duration">~' + duration.display + ' at ' + meta.classesPerWeek + '/week</div>' : '') +
+    '<div class="pc-price">$' + plan.finalPrice.toLocaleString() + '</div>' +
+    (meta.discount > 0 ? '<div class="pc-regular">Regular: $' + plan.regular.toLocaleString() + '</div>' : '') +
+    (plan.save > 0 ? '<div class="pc-save">You save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</div>' : '') +
+    '<div class="pc-per-class">Just <strong>$' + plan.perClass.toFixed(2) + '</strong> per class</div>' +
+    installmentHTML +
   '</div>';
 }
 
@@ -1685,45 +1999,73 @@ function closePricingModal() {
 }
 
 function buildParentPricingHTML() {
-  const plans = getPricingPlans();
+  const plans = getVisiblePlans();
   const meta = getPricingMeta();
-  const inst = meta.installment !== 'none' ? INSTALLMENT_PROVIDERS[meta.installment] : null;
+  const provider = INSTALLMENT_PROVIDERS[meta.installment];
 
   const cardsHTML = plans.map(plan => {
-    const installmentAmount = inst ? (plan.price / 4) : 0;
-    const highlight = plan.highlight;
+    const duration = calcDurationFromClasses(plan.classes, meta.classesPerWeek);
+    const inst = provider ? calcInstallment(plan.finalPrice, provider) : null;
+
+    const installmentBlock = inst ? (
+      '<div style="margin-top:20px;padding:16px 18px;background:#fff8f4;border:1px solid #ffd4bd;border-radius:10px;">' +
+        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:10px;color:#ff6b35;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin:0 0 8px;">' + provider.name + '</p>' +
+        '<p style="font-family:Georgia,serif;font-size:28px;font-weight:500;color:#1a1a1a;margin:0;line-height:1;letter-spacing:-0.5px;">$' + inst.perPayment.toFixed(2) + ' <span style="font-size:16px;color:#666;font-style:italic;">× ' + inst.payments + '</span></p>' +
+        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#666;margin:8px 0 0;line-height:1.5;">' +
+          (inst.firstPaymentToday ? '✓ First payment today' : '✓ Nothing today — first payment in ' + provider.firstPaymentDays + ' days') + '<br>' +
+          '✓ ' + inst.durationMonths + ' month' + (inst.durationMonths !== 1 ? 's' : '') + ' to complete' +
+          (inst.totalInterest > 0 ? '<br>• Total with interest: $' + inst.totalCost.toFixed(2) : '<br>✓ No interest, no fees') +
+        '</p>' +
+      '</div>'
+    ) : '';
+
     return (
-      '<div style="background:' + (highlight ? 'linear-gradient(135deg, #fff8f4 0%, #ffe5d9 100%)' : '#ffffff') + ';' +
-      'border:' + (highlight ? '2px solid #ff6b35' : '1px solid #f0ebe5') + ';' +
-      'border-radius:16px;padding:28px 24px;position:relative;' +
-      (highlight ? 'box-shadow:0 8px 32px rgba(255,107,53,0.18);' : 'box-shadow:0 2px 12px rgba(0,0,0,0.04);') +
-      '">' +
-        (highlight ? '<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#ff6b35;color:#fff;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">⭐ Best Value</div>' : '') +
-        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#999;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">' + plan.classes + ' Classes</p>' +
-        '<h3 style="font-family:Georgia,serif;font-size:26px;font-weight:400;color:#1a1a1a;margin:0 0 20px;letter-spacing:-0.5px;">' + plan.name + '</h3>' +
-        '<div style="font-family:Georgia,serif;font-size:48px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;">$' + plan.price.toLocaleString() + '</div>' +
-        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:6px 0 0;text-decoration:line-through;">$' + plan.regular.toLocaleString() + '</p>' +
-        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:600;margin:4px 0 0;">You save $' + plan.save.toLocaleString() + '</p>' +
-        '<div style="margin:20px 0 0;padding-top:20px;border-top:1px solid ' + (highlight ? '#ffd4bd' : '#f0ebe5') + ';">' +
-          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#666;margin:0;">Just <strong style="color:#1a1a1a;font-size:18px;">$' + plan.perClass.toFixed(2) + '</strong> per class</p>' +
+      '<div style="background:#ffffff;border:1px solid #f0ebe5;border-radius:16px;padding:32px 28px;box-shadow:0 2px 12px rgba(0,0,0,0.04);">' +
+        '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#999;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;">' + plan.classes + ' classes</p>' +
+        (duration ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#ff6b35;margin:0 0 20px;font-weight:600;">~' + duration.display + ' at ' + meta.classesPerWeek + ' class' + (meta.classesPerWeek > 1 ? 'es' : '') + '/week</p>' : '') +
+        '<div style="font-family:Georgia,serif;font-size:52px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1.5px;margin-bottom:10px;">$' + plan.finalPrice.toLocaleString() + '</div>' +
+        (meta.discount > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#999;margin:0;text-decoration:line-through;">Regular: $' + plan.regular.toLocaleString() + '</p>' : '') +
+        (plan.save > 0 ? '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;font-weight:700;margin:4px 0 0;">Save $' + plan.save.toLocaleString() + ' (' + meta.discount + '% off)</p>' : '') +
+        '<div style="margin:24px 0 0;padding-top:20px;border-top:1px solid #f0ebe5;">' +
+          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#666;margin:0;">Just <strong style="color:#1a1a1a;font-size:20px;font-family:Georgia,serif;font-weight:500;">$' + plan.perClass.toFixed(2) + '</strong> per class</p>' +
         '</div>' +
-        (inst ? (
-          '<div style="margin-top:18px;padding:14px 16px;background:' + (highlight ? '#ffffff' : '#fafafa') + ';border:1px solid #f0ebe5;border-radius:10px;">' +
-            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin:0 0 6px;">' + inst.name + '</p>' +
-            '<p style="font-family:Georgia,serif;font-size:24px;font-weight:500;color:#ff6b35;margin:0;line-height:1;">$' + installmentAmount.toFixed(2) + ' <span style="font-size:14px;color:#666;">× 4</span></p>' +
-            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:12px;color:#666;margin:6px 0 0;">' + inst.tagline + '</p>' +
-          '</div>'
-        ) : '') +
+        installmentBlock +
       '</div>'
     );
   }).join('');
 
-  const installmentNote = inst ? (
-    '<div style="background:#fff8f4;border-left:4px solid #ff6b35;padding:16px 20px;margin:24px 0 0;border-radius:8px;">' +
-      '<p style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#1a1a1a;margin:0 0 4px;font-weight:600;">' + inst.icon + ' Pay over time with ' + inst.name + '</p>' +
-      '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:0;line-height:1.5;">Split your payment into 4 equal installments. ' + inst.tagline + '. No hidden fees.</p>' +
-    '</div>'
-  ) : '';
+  // Build payment timeline for the highlighted plan (first one) if installment selected
+  let timelineHTML = '';
+  if (provider && plans.length > 0) {
+    const firstPlan = plans[0];
+    const inst = calcInstallment(firstPlan.finalPrice, provider);
+    if (inst && inst.schedule.length > 1) {
+      const scheduleRows = inst.schedule.map((s, idx) => {
+        const monthsFromNow = Math.round(s.dayOffset / 30);
+        const dateStr = s.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const label = idx === 0 ? (s.dayOffset === 0 ? 'Today' : 'In ' + s.dayOffset + ' days') : (monthsFromNow + ' months from now');
+        return (
+          '<tr>' +
+            '<td style="padding:12px 16px;border-bottom:1px solid #f0ebe5;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;width:80px;">Payment ' + s.num + '</td>' +
+            '<td style="padding:12px 16px;border-bottom:1px solid #f0ebe5;font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#1a1a1a;">' + dateStr + ' <span style="color:#999;">(' + label + ')</span></td>' +
+            '<td style="padding:12px 16px;border-bottom:1px solid #f0ebe5;font-family:Georgia,serif;font-size:16px;color:#1a1a1a;text-align:right;font-weight:500;">$' + s.amount.toFixed(2) + '</td>' +
+          '</tr>'
+        );
+      }).join('');
+
+      timelineHTML =
+        '<div style="margin-top:48px;background:#ffffff;border-radius:16px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,0.04);">' +
+          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:11px;color:#ff6b35;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Payment Timeline</p>' +
+          '<h3 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:#1a1a1a;margin:0 0 4px;letter-spacing:-0.5px;">' + firstPlan.classes + '-class plan with ' + provider.name + '</h3>' +
+          '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:0 0 20px;">Here\'s exactly what you\'ll pay and when:</p>' +
+          '<table style="width:100%;border-collapse:collapse;">' + scheduleRows + '</table>' +
+          (inst.totalInterest > 0 ?
+            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#666;margin:16px 0 0;text-align:right;">Total paid: <strong>$' + inst.totalCost.toFixed(2) + '</strong> (includes $' + inst.totalInterest.toFixed(2) + ' interest at ' + inst.apr + '% APR)</p>'
+            : '<p style="font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#22c55e;margin:16px 0 0;text-align:right;font-weight:600;">✓ Total: $' + firstPlan.finalPrice.toFixed(2) + ' — no interest, no fees</p>'
+          ) +
+        '</div>';
+    }
+  }
 
   return (
     '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
@@ -1737,7 +2079,7 @@ function buildParentPricingHTML() {
       'h1{font-family:Georgia,serif;font-size:42px;font-weight:400;margin:0 0 8px;letter-spacing:-1px;line-height:1.1;}' +
       'h1 em{font-style:italic;color:#ff6b35;font-weight:400;}' +
       '.subhead{font-size:16px;color:#666;margin:0;}' +
-      '.cards-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:32px;}' +
+      '.cards-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:32px;}' +
       '.brand-bar{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:32px;}' +
       '.brand-logo{width:36px;height:36px;background:#ff6b35;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;}' +
       '.brand-name{font-family:Georgia,serif;font-size:22px;font-weight:500;letter-spacing:-0.5px;}' +
@@ -1756,17 +2098,17 @@ function buildParentPricingHTML() {
       '<div class="header">' +
         '<p class="eyebrow">' + meta.levelLabel + ' · ' + meta.gradeRange + '</p>' +
         '<h1>Your <em>' + meta.courseLabel + '</em> journey</h1>' +
-        '<p class="subhead">' + meta.formatLabel + ' · Pick the plan that fits your child best</p>' +
+        '<p class="subhead">' + meta.formatLabel + ' · Pick the plan that fits</p>' +
       '</div>' +
       '<div class="cards-wrap">' + cardsHTML + '</div>' +
-      installmentNote +
+      timelineHTML +
       '<div class="footer">' +
         '<div class="trust">' +
           '<div class="trust-item">STEM Accredited</div>' +
           '<div class="trust-item">Harvard Collaboration</div>' +
           '<div class="trust-item">MIT · IIT · IIM Mentors</div>' +
         '</div>' +
-        '<p style="margin-top:16px;">All prices in USD. Kits billed separately as per grade. Summer offer — limited time.</p>' +
+        '<p style="margin-top:16px;">All prices in USD. Kits billed separately as per grade.</p>' +
       '</div>' +
     '</div>' +
     '</body></html>'
@@ -2855,9 +3197,12 @@ function bindUI() {
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
   document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
-  document.getElementById('pricing-share-image').addEventListener('click', showParentPricing);
-  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment'].forEach(id => {
-    document.getElementById(id).addEventListener('change', renderPricingPreview);
+  ['pricing-course', 'pricing-level', 'pricing-format', 'pricing-installment', 'pricing-discount', 'pricing-classes-per-week', 'pricing-custom-classes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', renderPricingPreview);
+      el.addEventListener('input', renderPricingPreview);
+    }
   });
 
   // Token chips - click to copy
