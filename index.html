@@ -104,7 +104,7 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html { font-feature-settings: "ss01", "cv01", "cv02", "cv03", "cv04"; }
+  html { font-feature-settings: "cv01"; }
 
   body {
     background: var(--bg);
@@ -115,24 +115,21 @@
     letter-spacing: -0.003em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
 
   /* Ambient gradient removed for scroll performance */
 
   .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px 100px; }
 
-  /* ============ HEADER (solid, performant) ============ */
+  /* ============ HEADER (static for perf, not sticky) ============ */
   header {
-    position: sticky; top: 16px;
-    z-index: 50;
     display: flex; justify-content: space-between; align-items: center;
-    margin: 0 auto 40px;
-    padding: 16px 24px;
+    margin: 0 0 32px;
+    padding: 20px 24px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
     flex-wrap: wrap; gap: 16px;
   }
 
@@ -1226,9 +1223,18 @@
       <div id="pricing-cards-preview"></div>
     </div>
 
-    <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" id="pricing-cancel">Close</button>
-      <button type="button" class="btn btn-primary" id="pricing-share-link">✨ Show to Parent (Full Screen)</button>
+    <div class="modal-actions" style="flex-direction:column;align-items:stretch;gap:12px;">
+      <div style="display:flex;gap:8px;align-items:center;padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-md);border:1px solid var(--border-soft);">
+        <label for="pricing-attach-demo" style="font-size:12px;color:var(--text-dim);font-weight:500;white-space:nowrap;">📌 Attach to demo:</label>
+        <select id="pricing-attach-demo" style="flex:1;padding:8px 12px;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:13px;">
+          <option value="">— Select a demo —</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-icon" id="pricing-save-snapshot">Save Quote</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button type="button" class="btn btn-ghost" id="pricing-cancel">Close</button>
+        <button type="button" class="btn btn-primary" id="pricing-share-link">✨ Show to Parent (Full Screen)</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1783,6 +1789,10 @@ function renderCard(d, today) {
       (followupAlert ? ' · due' : '') + '</span></div>' : '') +
     (d.packageDiscussed ? '<div class="card-row"><span class="label">Package</span><span class="value">' +
       escapeHtml(d.packageDiscussed) + '</span></div>' : '') +
+    (d.pricingSnapshot ? '<div class="card-row"><span class="label">Quote</span><span class="value accent" style="font-variant-numeric:tabular-nums;">$' +
+      d.pricingSnapshot.finalPrice.toLocaleString() +
+      (d.pricingSnapshot.discount > 0 ? ' (' + d.pricingSnapshot.discount + '% off)' : '') +
+      '</span></div>' : '') +
     '<div class="card-actions">' +
       '<button class="btn btn-secondary btn-icon card-edit-btn" data-id="' + escapeHtml(d.id) + '">Edit</button>' +
       (d.classLink ? '<a class="btn btn-secondary btn-icon" href="' + escapeHtml(d.classLink) + '" target="_blank" rel="noopener">Join</a>' : '') +
@@ -1856,7 +1866,31 @@ function openDetail(id) {
       detailItem('Package Discussed', d.packageDiscussed) +
       detailItem('Price Quoted', d.priceQuoted) +
       detailItem('Objections', d.objections, true) +
-    '</div></div>' +
+    '</div>' +
+    (d.pricingSnapshot ? (
+      '<div style="margin-top:16px;padding:16px 18px;background:var(--accent-soft);border:1px solid var(--border-soft);border-radius:var(--radius-md);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">' +
+          '<span style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;">📌 Saved Quote</span>' +
+          '<button class="btn btn-secondary btn-icon" data-action="reopen-quote" data-id="' + escapeHtml(d.id) + '">Re-open Quote</button>' +
+        '</div>' +
+        '<div style="font-family:inherit;font-size:24px;font-weight:600;color:var(--text);letter-spacing:-0.02em;line-height:1.1;">$' + d.pricingSnapshot.finalPrice.toLocaleString() + '</div>' +
+        '<div style="font-size:13px;color:var(--text-dim);margin-top:4px;">' +
+          escapeHtml(d.pricingSnapshot.courseLabel) + ' · ' + escapeHtml(d.pricingSnapshot.levelLabel) + ' · ' + escapeHtml(d.pricingSnapshot.formatLabel) +
+        '</div>' +
+        '<div style="font-size:13px;color:var(--text-dim);margin-top:6px;line-height:1.5;">' +
+          '<strong style="color:var(--text);">' + d.pricingSnapshot.classes + ' classes</strong>' +
+          (d.pricingSnapshot.discount > 0 ? ' · ' + d.pricingSnapshot.discount + '% off (saved $' + d.pricingSnapshot.save.toLocaleString() + ')' : '') +
+          ' · $' + d.pricingSnapshot.perClass.toFixed(2) + '/class' +
+          (d.pricingSnapshot.kit ? '<br>✓ Includes ' + escapeHtml(d.pricingSnapshot.kit.name) + ' Kit' : '') +
+          (d.pricingSnapshot.installmentName ? (
+            '<br>💳 ' + escapeHtml(d.pricingSnapshot.installmentName) + ' · $' + d.pricingSnapshot.installmentPerPayment.toFixed(2) + ' × ' + d.pricingSnapshot.installmentPayments +
+            ' over ' + d.pricingSnapshot.installmentDurationMonths + ' month' + (d.pricingSnapshot.installmentDurationMonths !== 1 ? 's' : '')
+          ) : '') +
+        '</div>' +
+        '<div style="font-size:11px;color:var(--text-faint);margin-top:8px;">Saved ' + new Date(d.pricingSnapshot.savedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
+      '</div>'
+    ) : '') +
+    '</div>' +
     '<div class="detail-section"><h3>Follow-up</h3><div class="detail-grid">' +
       detailItem('Next Follow-up', d.followupDate ? formatDate(d.followupDate) : '') +
       detailItem('Channel', d.followupChannel) +
@@ -1902,6 +1936,11 @@ function openDetail(id) {
       else if (act === 'cal') actionAddToCalendar(d.id);
       else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
     });
+  });
+
+  // Re-open quote button (in detail view)
+  document.querySelectorAll('#detail-body [data-action="reopen-quote"]').forEach(btn => {
+    btn.addEventListener('click', () => reopenSavedQuote(btn.dataset.id));
   });
 }
 
@@ -2545,6 +2584,7 @@ function renderPricingCard(plan, meta, provider) {
 
 function openPricingModal() {
   renderPricingPreview();
+  populateAttachDemoDropdown();
   document.getElementById('pricing-modal').classList.add('active');
 }
 
@@ -2786,6 +2826,181 @@ function showParentPricing() {
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
   setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
+}
+
+// ============ PRICING SNAPSHOT (save quote to a demo) ============
+function getCurrentPricingSnapshot() {
+  const meta = getPricingMeta();
+  const plans = getVisiblePlans();
+  const provider = INSTALLMENT_PROVIDERS[meta.installment];
+
+  // Take the highlighted (or first) plan as the primary quote
+  // If a custom class was added, use that
+  const customClasses = parseInt(document.getElementById('pricing-custom-classes').value) || 0;
+  let primaryPlan = plans.find(p => p.classes === customClasses);
+  if (!primaryPlan) {
+    // Default to middle plan if 3+, else the first
+    primaryPlan = plans.length >= 3 ? plans[Math.floor(plans.length / 2)] : plans[0];
+  }
+  if (!primaryPlan) return null;
+
+  const inst = provider ? calcInstallment(primaryPlan.finalPrice, provider, meta.customApr) : null;
+
+  return {
+    savedAt: new Date().toISOString(),
+    course: meta.course,
+    courseLabel: meta.courseLabel,
+    level: meta.level,
+    levelLabel: meta.levelLabel,
+    gradeRange: meta.gradeRange,
+    format: meta.format,
+    formatLabel: meta.formatLabel,
+    classes: primaryPlan.classes,
+    classesPerWeek: meta.classesPerWeek,
+    discount: meta.discount,
+    finalPrice: primaryPlan.finalPrice,
+    regular: primaryPlan.totalRegular,
+    save: primaryPlan.save,
+    perClass: primaryPlan.perClass,
+    kit: primaryPlan.kit ? { name: primaryPlan.kit.name, price: primaryPlan.kit.price } : null,
+    installment: meta.installment,
+    installmentName: provider ? provider.name : null,
+    installmentPerPayment: inst ? inst.perPayment : null,
+    installmentPayments: inst ? inst.payments : null,
+    installmentApr: inst ? inst.apr : null,
+    installmentDurationMonths: inst ? inst.durationMonths : null,
+    customApr: meta.customApr,
+    // Save all visible plans too (in case you want to show alternatives later)
+    allPlans: plans.map(p => ({
+      classes: p.classes,
+      finalPrice: p.finalPrice,
+      regular: p.totalRegular,
+      perClass: p.perClass
+    }))
+  };
+}
+
+function populateAttachDemoDropdown() {
+  const select = document.getElementById('pricing-attach-demo');
+  if (!select) return;
+  const currentValue = select.value;
+  // Show only open demos (not Closed-Won/Lost or No-show)
+  const eligible = demos.filter(d =>
+    !['Closed-Won', 'Closed-Lost'].includes(d.status)
+  ).sort((a, b) => {
+    // Sort by demo date descending (most recent first)
+    return (b.demoDate || '').localeCompare(a.demoDate || '');
+  });
+  select.innerHTML = '<option value="">— Select a demo —</option>' +
+    eligible.map(d => {
+      const parts = [
+        d.childName || 'Unnamed',
+        d.parentName || '',
+        d.demoDate ? formatDate(d.demoDate) : ''
+      ].filter(Boolean).join(' · ');
+      const tag = d.pricingSnapshot ? ' ✓ has quote' : '';
+      return '<option value="' + escapeHtml(d.id) + '">' + escapeHtml(parts) + tag + '</option>';
+    }).join('');
+  if (currentValue) select.value = currentValue;
+}
+
+async function saveCurrentPricingSnapshot() {
+  const demoId = document.getElementById('pricing-attach-demo').value;
+  if (!demoId) {
+    alert('Pick a demo from the dropdown first.');
+    return;
+  }
+  const demo = demos.find(d => d.id === demoId);
+  if (!demo) {
+    alert('Demo not found.');
+    return;
+  }
+  const snapshot = getCurrentPricingSnapshot();
+  if (!snapshot) {
+    alert('No plans available to save.');
+    return;
+  }
+
+  // Confirm overwrite
+  if (demo.pricingSnapshot) {
+    if (!confirm('This demo already has a saved quote ($' + demo.pricingSnapshot.finalPrice + ' · ' + demo.pricingSnapshot.classes + ' classes). Overwrite?')) {
+      return;
+    }
+  }
+
+  demo.pricingSnapshot = snapshot;
+  // Also update packageDiscussed + priceQuoted for backward compat with old fields
+  demo.packageDiscussed = snapshot.courseLabel + ' ' + snapshot.levelLabel + ' · ' + snapshot.classes + ' classes (' + snapshot.format.toUpperCase() + ')';
+  demo.priceQuoted = '$' + snapshot.finalPrice.toLocaleString();
+
+  try {
+    await saveDemo(demo);
+    const btn = document.getElementById('pricing-save-snapshot');
+    const origText = btn.textContent;
+    btn.textContent = '✓ Saved';
+    btn.style.background = 'var(--success)';
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.style.background = '';
+    }, 1800);
+    populateAttachDemoDropdown(); // refresh to show the ✓ tag
+  } catch (e) {
+    console.error(e);
+    alert('Could not save: ' + e.message);
+  }
+}
+
+function loadPricingSnapshot(snapshot) {
+  // Restores the modal controls from a saved snapshot
+  if (!snapshot) return;
+  document.getElementById('pricing-course').value = snapshot.course;
+  document.getElementById('pricing-level').value = snapshot.level;
+  document.getElementById('pricing-format').value = snapshot.format;
+  document.getElementById('pricing-discount').value = snapshot.discount;
+  document.getElementById('pricing-classes-per-week').value = snapshot.classesPerWeek;
+  document.getElementById('pricing-installment').value = snapshot.installment || 'none';
+  if (snapshot.customApr != null && document.getElementById('pricing-apr')) {
+    document.getElementById('pricing-apr').value = snapshot.customApr;
+  }
+  // Re-render to apply, then set custom class if applicable
+  renderPricingPreview();
+  // After re-render, set the custom-classes dropdown if the saved class isn't a default featured one
+  const customSelect = document.getElementById('pricing-custom-classes');
+  if (customSelect) {
+    const hasOption = Array.from(customSelect.options).some(o => o.value === String(snapshot.classes));
+    if (hasOption) {
+      customSelect.value = String(snapshot.classes);
+      renderPricingPreview();
+    }
+  }
+}
+
+function reopenSavedQuote(demoId) {
+  const demo = demos.find(d => d.id === demoId);
+  if (!demo || !demo.pricingSnapshot) {
+    alert('No saved quote on this demo.');
+    return;
+  }
+  closeDetailModal();
+  openPricingModal();
+  // Wait one tick for modal to mount, then restore
+  setTimeout(() => {
+    loadPricingSnapshot(demo.pricingSnapshot);
+    // Pre-select the demo in the attach dropdown
+    document.getElementById('pricing-attach-demo').value = demoId;
+  }, 50);
+}
+
+function renderPricingSnapshotSummary(snapshot) {
+  if (!snapshot) return '';
+  const parts = [
+    '$' + snapshot.finalPrice.toLocaleString(),
+    snapshot.classes + ' classes',
+    snapshot.courseLabel + ' ' + snapshot.format.toUpperCase(),
+    snapshot.discount > 0 ? snapshot.discount + '% off' : null,
+    snapshot.installmentName ? snapshot.installmentName + ' ($' + snapshot.installmentPerPayment.toFixed(2) + ' × ' + snapshot.installmentPayments + ')' : null
+  ].filter(Boolean);
+  return parts.join(' · ');
 }
 
 // ============ TEMPLATES ============
@@ -3890,6 +4105,7 @@ function bindUI() {
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
   document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
+  document.getElementById('pricing-save-snapshot').addEventListener('click', saveCurrentPricingSnapshot);
   // Pricing: debounce text inputs, instant for dropdowns
   let pricingDebounceTimer;
   const debouncedPricingRender = () => {
