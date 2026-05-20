@@ -1898,17 +1898,25 @@ function openDetail(id) {
     '</div></div>' +
     (d.generalNotes ? '<div class="detail-section"><h3>Notes</h3><div class="detail-grid"><div class="detail-item full"><div class="value">' +
       escapeHtml(d.generalNotes) + '</div></div></div></div>' : '') +
-    '<div class="detail-section"><h3>Quick Actions</h3>' +
+    '<div class="detail-section"><h3>📤 Pre-demo Outreach</h3>' +
       '<div class="action-grid">' +
-        (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
-        (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
         '<button class="action-btn" data-act="pretty-email">✨ Pretty Email · Confirmation</button>' +
         '<button class="action-btn" data-act="pretty-email-24h">✨ Pretty Email · 24h before</button>' +
         '<button class="action-btn" data-act="pretty-email-30m">✨ Pretty Email · 30m before</button>' +
-        '<button class="action-btn" data-act="email">📧 Quick Email (plain text)</button>' +
+        (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
+        (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
         (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
+        '<button class="action-btn" data-act="email">📧 Quick Email (plain text)</button>' +
         (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="gcal">📅 Google Calendar</button>' : '') +
         (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📥 Download .ics (with alarms)</button>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="detail-section"><h3>🎯 Post-demo Follow-up</h3>' +
+      (!d.pricingSnapshot ? '<p style="font-size:12px;color:var(--text-faint);margin:-12px 0 12px;">💡 Tip: Save a pricing quote first for these emails to include the offer.</p>' : '') +
+      '<div class="action-grid">' +
+        '<button class="action-btn" data-act="followup-2h">✨ Right After Demo (+2h)</button>' +
+        '<button class="action-btn" data-act="followup-24h">✨ Day 2 Check-in (+24h)</button>' +
+        '<button class="action-btn" data-act="followup-48h">✨ Final Push (+48h)</button>' +
       '</div>' +
     '</div>' +
     '<div class="modal-actions">' +
@@ -1932,6 +1940,9 @@ function openDetail(id) {
       else if (act === 'pretty-email') actionPrettyEmail(d.id, 'confirmation');
       else if (act === 'pretty-email-24h') actionPrettyEmail(d.id, '24h');
       else if (act === 'pretty-email-30m') actionPrettyEmail(d.id, '30m');
+      else if (act === 'followup-2h') actionPrettyEmail(d.id, 'followup-2h');
+      else if (act === 'followup-24h') actionPrettyEmail(d.id, 'followup-24h');
+      else if (act === 'followup-48h') actionPrettyEmail(d.id, 'followup-48h');
       else if (act === 'sms') actionCopySMS(d.id);
       else if (act === 'cal') actionAddToCalendar(d.id);
       else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
@@ -3270,6 +3281,9 @@ function actionPrettyEmail(demoId, kind) {
 function getEmailSubject(kind, d) {
   if (kind === '24h') return fillTemplate(`See you tomorrow, {parent_name} — {child_name}'s class details inside`, d);
   if (kind === '30m') return fillTemplate(`Starting in 30 minutes — {child_name}'s {course} class`, d);
+  if (kind === 'followup-2h') return fillTemplate(`Great seeing {child_name} today — your offer inside`, d);
+  if (kind === 'followup-24h') return fillTemplate(`Any questions about {child_name}'s {course} journey?`, d);
+  if (kind === 'followup-48h') return fillTemplate(`A quick note before your offer expires, {parent_name}`, d);
   return fillTemplate(`Your trial class is confirmed — see you soon, {parent_name}!`, d);
 }
 
@@ -3292,6 +3306,30 @@ function getEmailContent(kind, d, curriculum) {
       eyebrow: 'Starting Soon · 30 Minutes',
       headline: 'We start in 30 minutes.',
       subhead: `Get ${childName} settled in a quiet spot — we'll see you shortly.`
+    };
+  }
+  if (kind === 'followup-2h') {
+    return {
+      preheader: `It was great seeing ${childName} today. Here's the offer we discussed.`,
+      eyebrow: 'Thank you',
+      headline: `Great seeing ${childName} today.`,
+      subhead: `Here's a quick recap and the offer we walked through.`
+    };
+  }
+  if (kind === 'followup-24h') {
+    return {
+      preheader: `Just checking in on ${childName}'s next steps with us.`,
+      eyebrow: 'Quick check-in',
+      headline: `How's ${childName} feeling about it?`,
+      subhead: `Just a quick note — any questions I can answer before you decide?`
+    };
+  }
+  if (kind === 'followup-48h') {
+    return {
+      preheader: `A final note before ${childName}'s special offer expires.`,
+      eyebrow: 'Offer Expires Soon',
+      headline: `One last note for ${parentName}.`,
+      subhead: `Wanted to make sure ${childName}'s spot doesn't slip away.`
     };
   }
   return {
@@ -3336,12 +3374,22 @@ function buildPrettyEmailHTML(d, curriculum, kind) {
   const headline = safe(content.headline);
   const subhead = safe(content.subhead);
 
+  const isFollowup = kind && kind.startsWith('followup-');
+
   // Show/hide certain sections based on kind
   const showWhatToExpect = kind === 'confirmation';
   const showCurriculum = kind === 'confirmation' && curriculum;
   const showPrepChecklist = kind === 'confirmation' || kind === '24h';
-  const showTrustBadges = kind === 'confirmation';
-  const ctaText = kind === '30m' ? 'Join Class Now →' : (kind === '24h' ? 'View Class Details →' : 'Join Class →');
+  const showTrustBadges = kind === 'confirmation' || isFollowup;
+  const showSessionDetails = !isFollowup; // pre-demo emails show date/time, follow-ups don't
+  const showSavedQuote = isFollowup && d.pricingSnapshot;
+
+  const ctaText = kind === '30m' ? 'Join Class Now →'
+    : kind === '24h' ? 'View Class Details →'
+    : kind === 'followup-2h' ? 'Secure Your Spot →'
+    : kind === 'followup-24h' ? 'Continue Your Journey →'
+    : kind === 'followup-48h' ? 'Claim Your Offer →'
+    : 'Join Class →';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -3453,6 +3501,7 @@ function buildPrettyEmailHTML(d, curriculum, kind) {
           </td>
         </tr>
 
+        ${showSessionDetails ? `
         <!-- DETAILS CARD -->
         <tr>
           <td style="padding:0 40px 32px;">
@@ -3495,6 +3544,158 @@ function buildPrettyEmailHTML(d, curriculum, kind) {
             </table>
           </td>
         </tr>
+        ` : ''}
+
+        ${showSavedQuote ? `
+        <!-- SAVED QUOTE CARD (follow-up emails) -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg,#fff8f4,#ffe5d9);border:2px solid #ff6b35;border-radius:14px;">
+              <tr>
+                <td style="padding:28px;text-align:center;">
+                  <p style="font-size:11px;color:#ff6b35;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;font-weight:700;">
+                    Your Personal Offer
+                  </p>
+                  <p style="font-size:14px;color:#666;margin:0 0 18px;">
+                    ${safe(d.pricingSnapshot.courseLabel)} · ${safe(d.pricingSnapshot.levelLabel)} · ${safe(d.pricingSnapshot.formatLabel)}
+                  </p>
+                  <div style="font-family:Georgia,serif;font-size:48px;font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-1px;margin-bottom:6px;">
+                    $${d.pricingSnapshot.finalPrice.toLocaleString()}
+                  </div>
+                  ${d.pricingSnapshot.discount > 0 ? `
+                    <p style="font-size:14px;color:#22c55e;font-weight:700;margin:0 0 4px;">
+                      ${d.pricingSnapshot.discount}% off · You save $${d.pricingSnapshot.save.toLocaleString()}
+                    </p>
+                  ` : ''}
+                  <p style="font-size:13px;color:#666;margin:8px 0 0;">
+                    <strong style="color:#1a1a1a;">${d.pricingSnapshot.classes} classes</strong> · $${d.pricingSnapshot.perClass.toFixed(2)} per class
+                  </p>
+                  ${d.pricingSnapshot.kit ? `
+                    <p style="font-size:12px;color:#666;margin:6px 0 0;">
+                      ✓ Includes ${safe(d.pricingSnapshot.kit.name)} Kit
+                    </p>
+                  ` : ''}
+                  ${d.pricingSnapshot.installmentName ? `
+                    <div style="margin-top:18px;padding-top:18px;border-top:1px solid #ffd4bd;">
+                      <p style="font-size:12px;color:#666;margin:0 0 6px;font-weight:600;">
+                        Or pay with ${safe(d.pricingSnapshot.installmentName)}:
+                      </p>
+                      <p style="font-family:Georgia,serif;font-size:24px;font-weight:500;color:#ff6b35;margin:0;letter-spacing:-0.5px;">
+                        $${d.pricingSnapshot.installmentPerPayment.toFixed(2)} × ${d.pricingSnapshot.installmentPayments}
+                      </p>
+                      <p style="font-size:12px;color:#666;margin:4px 0 0;">
+                        over ${d.pricingSnapshot.installmentDurationMonths} month${d.pricingSnapshot.installmentDurationMonths !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  ` : ''}
+
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px auto 0;">
+                    <tr>
+                      <td align="center">
+                        <a href="mailto:rituraj.pandey@team.brightchamps.com?subject=Yes, I want to enroll ${safe(childName)}" style="display:inline-block;background-color:#ff6b35;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+                          ${ctaText}
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${isFollowup && !showSavedQuote ? `
+        <!-- FOLLOWUP CTA (when no saved quote) -->
+        <tr>
+          <td style="padding:0 40px 32px;text-align:center;">
+            <a href="mailto:rituraj.pandey@team.brightchamps.com?subject=About ${safe(childName)}'s next steps" style="display:inline-block;background-color:#ff6b35;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.3px;">
+              ${ctaText}
+            </a>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${kind === 'followup-2h' ? `
+        <!-- FOLLOWUP 2H: warm recap -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border-left:4px solid #ff6b35;border-radius:8px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0 0 10px;font-weight:600;">
+                    What I noticed today —
+                  </p>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:0;">
+                    ${childName} showed real curiosity and engagement during the session. That's exactly the spark we look for, and the program is designed to take that curiosity and turn it into real, lasting skills.
+                  </p>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:12px 0 0;">
+                    The offer above is what I shared on our call — it's yours to lock in. Reply to this email or message me on WhatsApp whenever you're ready.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${kind === 'followup-24h' ? `
+        <!-- FOLLOWUP 24H: gentle check-in -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff8f4;border-left:4px solid #ff6b35;border-radius:8px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0 0 10px;">
+                    Hi ${parentName},
+                  </p>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:0 0 12px;">
+                    Just wanted to check in. I know choosing the right program for ${childName} is a big decision, and I'm here to help make it the right one — whatever you decide.
+                  </p>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:0;">
+                    A few common questions parents ask after the demo:
+                  </p>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+                    <tr><td style="padding:6px 0;font-size:13px;color:#666;"><span style="color:#ff6b35;font-weight:700;">·</span>&nbsp;&nbsp;Can ${childName} pause or change pace?</td></tr>
+                    <tr><td style="padding:6px 0;font-size:13px;color:#666;"><span style="color:#ff6b35;font-weight:700;">·</span>&nbsp;&nbsp;What if the schedule changes?</td></tr>
+                    <tr><td style="padding:6px 0;font-size:13px;color:#666;"><span style="color:#ff6b35;font-weight:700;">·</span>&nbsp;&nbsp;Is the kit really included? (Yes — it ships free.)</td></tr>
+                    <tr><td style="padding:6px 0;font-size:13px;color:#666;"><span style="color:#ff6b35;font-weight:700;">·</span>&nbsp;&nbsp;What if ${childName} doesn't love it?</td></tr>
+                  </table>
+                  <p style="font-size:14px;color:#666;line-height:1.6;margin:12px 0 0;">
+                    Happy to answer any of these — or anything else on your mind. Just reply.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
+
+        ${kind === 'followup-48h' ? `
+        <!-- FOLLOWUP 48H: urgency without pressure -->
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a1a1a;border-radius:12px;">
+              <tr>
+                <td style="padding:24px;">
+                  <p style="font-size:11px;color:#ff8c42;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;font-weight:600;">
+                    Last note before the spot reopens
+                  </p>
+                  <p style="font-size:15px;color:#ffffff;line-height:1.6;margin:0 0 12px;">
+                    Hi ${parentName},
+                  </p>
+                  <p style="font-size:14px;color:#d2d2d7;line-height:1.6;margin:0 0 12px;">
+                    I wanted to send one final note — the discounted offer we discussed for ${childName} expires soon, and the slots fill up fast at this price.
+                  </p>
+                  <p style="font-size:14px;color:#d2d2d7;line-height:1.6;margin:0;">
+                    No pressure either way. If now's not the right time, I completely understand. But if ${childName} is excited and you're ready, I want to make sure I save your spot before it's gone.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        ` : ''}
 
         ${showWhatToExpect ? `
         <!-- WHAT TO EXPECT -->
