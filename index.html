@@ -938,52 +938,82 @@
   }
 
 
-  /* ============ ACADEMIC PRICING (dark, internal) ============ */
-  .pp2 { position:relative; color:#e9e6f0; border:1px solid rgba(255,255,255,0.08); border-radius:16px;
-    padding:22px 22px 18px; background-color:#15141c;
-    background-image:repeating-linear-gradient(180deg,transparent,transparent 27px,rgba(255,255,255,0.035) 28px); }
-  .pp2::before { content:''; position:absolute; top:14px; bottom:14px; left:16px; width:1px; background:rgba(176,137,72,0.35); }
+
+  /* ============ ACADEMIC PRICING (blends with modal; gold accent) ============ */
+  .pp2 { color: var(--text); }
   .pp2-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;
-    margin:0 0 14px 12px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); }
-  .pp2-eyebrow { font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; color:#c9a86a; }
-  .pp2-sub { font-size:12px; color:#9a95ab; }
-  .pp2-carousel-wrap { position:relative; margin-left:12px; }
-  .pp2-carousel { display:flex; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding:8px 2px 12px;
-    -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.2) transparent; }
+    margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border-soft); }
+  .pp2-eyebrow { font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; color:#d4af6a; }
+  .pp2-sub { font-size:12px; color:var(--text-dim); }
+
+  /* discount control bar */
+  .pp2-disc { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 16px; padding:9px 14px;
+    border:1px dashed var(--border); border-radius:12px; }
+  .pp2-disc.active { border-style:solid; border-color:rgba(212,175,106,0.5); background:rgba(212,175,106,0.06); }
+  .pp2-disc-hint { font-size:12px; color:var(--text-dim); }
+  .pp2-disc-sel { font-size:12px; color:var(--text-dim); display:none; }
+  .pp2-disc-sel b { color:#d4af6a; }
+  .pp2-disc.active .pp2-disc-hint { display:none; }
+  .pp2-disc.active .pp2-disc-sel { display:inline; }
+  .pp2-disc-btns { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-left:auto; }
+  .pp2-disc-btns button { font-size:12px; font-weight:700; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--border-soft); background:var(--surface-solid); color:var(--text); cursor:pointer; transition:all .15s; }
+  .pp2-disc-btns button:hover { border-color:#d4af6a; color:#d4af6a; }
+  .pp2-disc-btns button.on { background:linear-gradient(135deg,#f4d58a,#c9a86a); color:#4a3714; border-color:transparent; }
+  .pp2-disc-input { width:60px; padding:6px 8px; border-radius:8px; border:1px solid var(--border-soft);
+    background:var(--surface-solid); color:var(--text); font-size:12px; }
+
+  /* carousel (no arrows, scroll only) */
+  .pp2-carousel { display:flex; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding:10px 2px 12px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
   .pp2-carousel::-webkit-scrollbar { height:6px; }
-  .pp2-carousel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.16); border-radius:3px; }
-  .pp2-card { position:relative; flex:0 0 232px; scroll-snap-align:start; background:#1e1d28;
-    border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:20px 18px 16px; }
-  .pp2-card.best { border-color:#b08948; box-shadow:0 8px 26px rgba(176,137,72,0.18); }
-  .pp2-seal { position:absolute; top:-10px; right:14px; background:#b08948; color:#15141c; font-size:10px;
-    font-weight:800; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+  .pp2-carousel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  .pp2-card { position:relative; flex:0 0 236px; scroll-snap-align:start; background:var(--surface-2);
+    border:1px solid var(--border-soft); border-radius:14px; padding:20px 18px 16px; cursor:pointer;
+    transition:border-color .18s, box-shadow .18s, background .18s; overflow:hidden; }
+  .pp2-card:hover { border-color:var(--border-strong); }
+  .pp2-card.best { border-color:rgba(201,168,106,0.55); }
+  .pp2-card.selected { border-color:#d4af6a; box-shadow:0 0 0 1px #d4af6a, 0 12px 30px rgba(212,175,106,0.25);
+    background:linear-gradient(160deg, rgba(212,175,106,0.14), transparent 55%), var(--surface-2); }
+  .pp2-card.goldpulse { animation: ppGold 0.7s ease; }
+  @keyframes ppGold { 0% { box-shadow:0 0 0 0 rgba(212,175,106,0.55); } 100% { box-shadow:0 0 0 16px rgba(212,175,106,0); } }
+  .pp2-card.shimmer::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:14px;
+    background:linear-gradient(105deg, transparent 32%, rgba(212,175,106,0.38) 50%, transparent 68%);
+    background-size:220% 100%; animation: ppShine 0.9s ease; }
+  @keyframes ppShine { from { background-position:160% 0; } to { background-position:-60% 0; } }
+
+  .pp2-seal { position:absolute; top:-10px; right:14px; background:linear-gradient(135deg,#f4d58a,#c9a86a);
+    color:#4a3714; font-size:10px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
   .pp2-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
   .pp2-sessions { font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#b6a3e6; }
-  .pp2-save { font-size:10px; font-weight:700; color:#66d99a; background:rgba(52,199,89,0.14); padding:3px 8px; border-radius:20px; white-space:nowrap; }
-  .pp2-price { font-family:Georgia,'Times New Roman',serif; font-size:32px; font-weight:600; letter-spacing:-0.02em; line-height:1; color:#f3f0e8; }
-  .pp2-per { font-size:13px; color:#9a95ab; margin-top:6px; }
-  .pp2-per span { color:#6f6a80; }
-  .pp2-dur { font-size:12px; color:#8b8698; margin-top:10px; }
-  .pp2-line { font-size:12px; color:#cfcbd9; margin-top:6px; }
-  .pp2-line strong { color:#c9a86a; }
-  .pp2-inst { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:#8b8698; }
-  .pp2-inst span { font-family:Georgia,serif; font-weight:600; color:#f3f0e8; font-size:15px; }
-  .pp2-arrow { position:absolute; top:calc(50% - 6px); transform:translateY(-50%); z-index:3; width:34px; height:34px;
-    border-radius:50%; border:1px solid rgba(255,255,255,0.16); background:#25242f; color:#e9e6f0; font-size:20px;
-    line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .pp2-arrow:hover { background:#302f3c; }
-  .pp2-arrow.prev { left:-10px; }
-  .pp2-arrow.next { right:-10px; }
-  .pp2-pay { margin:14px 0 0 12px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); display:flex;
+  .pp2-save { font-size:10px; font-weight:700; color:#3fae6a; background:rgba(52,199,89,0.14); padding:3px 8px; border-radius:20px; white-space:nowrap; }
+  .pp2-pricewrap { position:relative; }
+  .pp2-orig { font-size:14px; color:var(--text-faint); text-decoration:line-through; height:0; opacity:0; overflow:hidden; transition:opacity .2s; }
+  .pp2-orig.show { height:auto; opacity:1; margin-bottom:2px; }
+  .pp2-price { font-family:Georgia,'Times New Roman',serif; font-size:32px; font-weight:600; letter-spacing:-0.02em; line-height:1; color:var(--text); }
+  .pp2-savebadge { display:inline-block; margin-top:8px; font-size:11px; font-weight:800; color:#4a3714;
+    background:linear-gradient(135deg,#f4d58a,#c9a86a); padding:4px 11px; border-radius:20px; transform:scale(0.6); opacity:0; }
+  .pp2-savebadge.shown { transform:scale(1); opacity:1; }
+  .pp2-savebadge.pop { animation: ppPop 0.55s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes ppPop { 0% { transform:scale(0.6); opacity:0; } 60% { transform:scale(1.14); opacity:1; } 100% { transform:scale(1); opacity:1; } }
+  .pp2-per { font-size:13px; color:var(--text-dim); margin-top:6px; }
+  .pp2-per span { color:var(--text-faint); }
+  .pp2-dur { font-size:12px; color:var(--text-dim); margin-top:10px; }
+  .pp2-line { font-size:12px; color:var(--text-secondary); margin-top:6px; }
+  .pp2-line strong { color:#d4af6a; }
+  .pp2-inst { margin-top:12px; padding-top:12px; border-top:1px solid var(--border-soft); font-size:12px; color:var(--text-dim); }
+  .pp2-inst span { font-family:Georgia,serif; font-weight:600; color:var(--text); font-size:15px; }
+  .pp2-pay { margin:14px 0 0; padding-top:14px; border-top:1px solid var(--border-soft); display:flex;
     align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-  .pp2-pms { display:flex; gap:14px; align-items:center; flex-wrap:wrap; opacity:0.78; }
-  .pp2-pm { font-size:12px; font-weight:800; letter-spacing:0.02em; color:#b9b6c4; font-family:Arial,Helvetica,sans-serif; }
+  .pp2-pms { display:flex; gap:14px; align-items:center; flex-wrap:wrap; opacity:0.7; }
+  .pp2-pm { font-size:12px; font-weight:800; letter-spacing:0.02em; color:var(--text-dim); font-family:Arial,Helvetica,sans-serif; }
   .pp2-pm.pm-visa { font-style:italic; }
   .pp2-pm.pm-mc { display:inline-flex; gap:0; }
-  .pp2-pm.pm-mc i { width:13px; height:13px; border-radius:50%; display:block; background:#8f8b9c; }
-  .pp2-pm.pm-mc i:last-child { background:#c3bfce; margin-left:-6px; }
-  .pp2-pay-note { font-size:11px; color:#6f6a80; }
-  .pp2-empty { text-align:center; color:#8b8698; padding:20px; }
+  .pp2-pm.pm-mc i { width:13px; height:13px; border-radius:50%; display:block; background:var(--text-faint); }
+  .pp2-pm.pm-mc i:last-child { background:var(--text-dim); margin-left:-6px; }
+  .pp2-pay-note { font-size:11px; color:var(--text-faint); }
+  .pp2-empty { text-align:center; color:var(--text-dim); padding:20px; }
 </style>
 </head>
 <body>
@@ -2223,7 +2253,6 @@ function getPricingPlans() {
   const rpc = bestRpcFor(meta.course, meta.level, meta.format) ||
     Math.round(tiers[tiers.length - 1].price / maxPreset);
 
-  // Only extend the bands that already run long (skip tiny grade 1-2 packs)
   if (maxPreset >= 90) {
     EXTENDED_TARGETS.forEach(n => {
       if (n > maxPreset) tiers.push({ classes: n, price: Math.round(n * rpc), extended: true });
@@ -2232,7 +2261,8 @@ function getPricingPlans() {
   tiers.sort((a, b) => a.classes - b.classes);
 
   const starterPerClass = tiers[0].price / tiers[0].classes;
-  const maxClasses = tiers[tiers.length - 1].classes;
+  const realTiers = tiers.filter(t => !t.extended);
+  const bestClasses = realTiers.length ? realTiers[realTiers.length - 1].classes : null;
 
   return tiers.map(t => {
     const perClass = t.price / t.classes;
@@ -2242,7 +2272,7 @@ function getPricingPlans() {
       price: t.price,
       perClass: perClass,
       extended: !!t.extended,
-      isBest: t.classes === maxClasses && tiers.length > 1,
+      isBest: t.classes === bestClasses && realTiers.length > 1,
       savePct: savePct,
       kitLabel: meta.hasKits ? kitLabelFor(t.classes) : null,
       duration: calcDurationFromClasses(t.classes, meta.perWeek),
@@ -2276,6 +2306,75 @@ function ppMoney(n) {
   return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: (n % 1) ? 2 : 0 });
 }
 
+// Selection + discount state (counsellor picks one plan, applies a discount to it)
+let ppSel = null;   // classes of the selected plan
+let ppDisc = 0;     // discount % on the selected plan
+
+function ppGetSelectedCard(cont) { return cont.querySelector('.pp2-card.selected'); }
+
+function ppAnimNum(el, from, to, dur) {
+  const st = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - st) / dur);
+    const e = 1 - Math.pow(1 - t, 3);
+    el.textContent = ppMoney(Math.round(from + (to - from) * e));
+    if (t < 1) requestAnimationFrame(tick); else el.textContent = ppMoney(Math.round(to));
+  }
+  requestAnimationFrame(tick);
+}
+
+function ppResetCardDOM(card) {
+  const full = +card.dataset.price, classes = +card.dataset.classes, months = +card.dataset.months;
+  card.querySelector('.pp2-price').textContent = ppMoney(full);
+  const o = card.querySelector('.pp2-orig'); o.textContent = ''; o.classList.remove('show');
+  const sb = card.querySelector('.pp2-savebadge'); sb.textContent = ''; sb.classList.remove('shown', 'pop');
+  card.querySelector('.pp2-per').innerHTML = ppMoney(Math.round(full / classes)) + ' <span>per class</span>';
+  card.querySelector('.pp2-inst span').textContent = ppMoney(full / months);
+}
+
+function ppSelectCard(card, cont) {
+  const cls = parseInt(card.dataset.classes);
+  const prev = cont.querySelector('.pp2-card.selected');
+  if (prev && prev !== card) { prev.classList.remove('selected'); ppResetCardDOM(prev); }
+  ppSel = cls; ppDisc = 0;
+  card.classList.add('selected');
+  ppResetCardDOM(card);
+  card.classList.remove('goldpulse'); void card.offsetWidth; card.classList.add('goldpulse');
+  const bar = cont.querySelector('.pp2-disc');
+  bar.classList.add('active');
+  bar.querySelector('.pp2-disc-sel b').textContent = cls + ' sessions';
+  bar.querySelectorAll('[data-d]').forEach(b => b.classList.toggle('on', parseInt(b.dataset.d) === 0));
+}
+
+function ppApplyDiscount(card, pct, cont) {
+  if (!card) return;
+  ppDisc = pct;
+  cont.querySelector('.pp2-disc').querySelectorAll('[data-d]').forEach(b => b.classList.toggle('on', parseInt(b.dataset.d) === pct));
+  const full = +card.dataset.price, classes = +card.dataset.classes, months = +card.dataset.months;
+  const cur = parseFloat(card.querySelector('.pp2-price').textContent.replace(/[^0-9.]/g, '')) || full;
+  const target = Math.round(full * (1 - pct / 100));
+  const save = full - target;
+  const priceEl = card.querySelector('.pp2-price');
+  const o = card.querySelector('.pp2-orig');
+  const sb = card.querySelector('.pp2-savebadge');
+  const per = card.querySelector('.pp2-per');
+  const inst = card.querySelector('.pp2-inst span');
+  if (pct <= 0) {
+    o.textContent = ''; o.classList.remove('show'); sb.textContent = ''; sb.classList.remove('shown', 'pop');
+    ppAnimNum(priceEl, cur, full, 450);
+    per.innerHTML = ppMoney(Math.round(full / classes)) + ' <span>per class</span>';
+    inst.textContent = ppMoney(full / months);
+    return;
+  }
+  o.textContent = ppMoney(full); o.classList.add('show');
+  ppAnimNum(priceEl, cur, target, 650);
+  sb.textContent = 'You save ' + ppMoney(save) + '  ·  ' + pct + '% off';
+  sb.classList.add('shown'); sb.classList.remove('pop'); void sb.offsetWidth; sb.classList.add('pop');
+  per.innerHTML = ppMoney(Math.round(target / classes)) + ' <span>per class</span>';
+  inst.textContent = ppMoney(target / months);
+  card.classList.remove('shimmer'); void card.offsetWidth; card.classList.add('shimmer');
+}
+
 function renderPricingPreview() {
   const courseSel = document.getElementById('pricing-course');
   if (!courseSel) return;
@@ -2302,41 +2401,67 @@ function renderPricingPreview() {
   const container = document.getElementById('pricing-cards-preview');
   if (!plans.length) { container.innerHTML = '<p class="pp2-empty">No plans for this selection.</p>'; return; }
 
+  // Clear a stale selection if the plan set changed
+  if (ppSel !== null && !plans.some(p => p.classes === ppSel)) { ppSel = null; ppDisc = 0; }
+
   const flex = meta.format === 'oto' ? ' · flexible schedule' : '';
+  const discBtns = [0, 10, 15, 20, 25, 30].map(d =>
+    '<button type="button" data-d="' + d + '"' + ((ppSel !== null && ppDisc === d) ? ' class="on"' : '') + '>' + d + '%</button>').join('');
+
   container.innerHTML =
     '<div class="pp2">' +
       '<div class="pp2-head">' +
         '<span class="pp2-eyebrow">' + escapeHtml(meta.courseLabel) + ' · ' + escapeHtml(meta.gradeRange) + '</span>' +
         '<span class="pp2-sub">' + escapeHtml(meta.formatLabel) + ' · ' + meta.perWeek + '/week' + flex + '</span>' +
       '</div>' +
-      '<div class="pp2-carousel-wrap">' +
-        '<button type="button" class="pp2-arrow prev" data-dir="-1" aria-label="Scroll left">&lsaquo;</button>' +
-        '<div class="pp2-carousel" id="pp2-carousel">' + plans.map(p => renderPricingCard(p, meta)).join('') + '</div>' +
-        '<button type="button" class="pp2-arrow next" data-dir="1" aria-label="Scroll right">&rsaquo;</button>' +
+      '<div class="pp2-disc' + (ppSel !== null ? ' active' : '') + '">' +
+        '<span class="pp2-disc-hint">Tap a plan, then apply a discount to it</span>' +
+        '<span class="pp2-disc-sel">Discount for <b>' + (ppSel !== null ? (ppSel + ' sessions') : '') + '</b></span>' +
+        '<div class="pp2-disc-btns">' + discBtns +
+          '<input type="number" class="pp2-disc-input" min="0" max="90" placeholder="%">' +
+        '</div>' +
       '</div>' +
+      '<div class="pp2-carousel" id="pp2-carousel">' + plans.map(pl => renderPricingCard(pl, meta)).join('') + '</div>' +
       paymentRowHTML() +
     '</div>';
 
-  const car = document.getElementById('pp2-carousel');
-  container.querySelectorAll('.pp2-arrow').forEach(btn => {
-    btn.addEventListener('click', () => { car.scrollBy({ left: parseInt(btn.dataset.dir) * 320, behavior: 'smooth' }); });
+  const cards = Array.from(container.querySelectorAll('.pp2-card'));
+  cards.forEach(card => card.addEventListener('click', () => ppSelectCard(card, container)));
+  const bar = container.querySelector('.pp2-disc');
+  bar.querySelectorAll('[data-d]').forEach(btn =>
+    btn.addEventListener('click', () => { if (ppSel !== null) ppApplyDiscount(ppGetSelectedCard(container), parseInt(btn.dataset.d), container); }));
+  const inp = bar.querySelector('.pp2-disc-input');
+  inp.addEventListener('change', () => {
+    if (ppSel !== null) { const v = Math.max(0, Math.min(90, parseInt(inp.value) || 0)); ppApplyDiscount(ppGetSelectedCard(container), v, container); }
   });
 }
 
 function renderPricingCard(plan, meta) {
+  const isSel = plan.classes === ppSel;
+  const disc = isSel ? ppDisc : 0;
+  const full = plan.price;
+  const shown = disc > 0 ? Math.round(full * (1 - disc / 100)) : full;
+  const save = full - shown;
+  const perShown = Math.round(shown / plan.classes);
+  const monthlyShown = shown / meta.months;
   const seal = plan.isBest ? '<div class="pp2-seal">Best value</div>' : '';
-  const save = plan.savePct > 0 ? '<span class="pp2-save">Save ' + plan.savePct + '% vs starter</span>' : '';
+  const saveVs = (plan.savePct > 0 && disc === 0) ? '<span class="pp2-save">Save ' + plan.savePct + '% vs starter</span>' : '';
   const kit = plan.kitLabel
     ? '<div class="pp2-line">Includes <strong>' + plan.kitLabel + '</strong> robotics kit' + (plan.kitLabel === '1' ? '' : 's') + '</div>'
     : '';
   const dur = plan.duration ? '<div class="pp2-dur">about ' + plan.duration.display + ' at ' + meta.perWeek + '/week</div>' : '';
-  return '<div class="pp2-card' + (plan.isBest ? ' best' : '') + '">' +
+  return '<div class="pp2-card' + (plan.isBest ? ' best' : '') + (isSel ? ' selected' : '') +
+      '" data-classes="' + plan.classes + '" data-price="' + full + '" data-months="' + meta.months + '">' +
     seal +
-    '<div class="pp2-top"><span class="pp2-sessions">' + plan.classes + ' sessions</span>' + save + '</div>' +
-    '<div class="pp2-price">' + ppMoney(plan.price) + '</div>' +
-    '<div class="pp2-per">' + ppMoney(Math.round(plan.perClass)) + ' <span>per class</span></div>' +
+    '<div class="pp2-top"><span class="pp2-sessions">' + plan.classes + ' sessions</span>' + saveVs + '</div>' +
+    '<div class="pp2-pricewrap">' +
+      '<div class="pp2-orig' + (disc > 0 ? ' show' : '') + '">' + (disc > 0 ? ppMoney(full) : '') + '</div>' +
+      '<div class="pp2-price">' + ppMoney(shown) + '</div>' +
+      '<span class="pp2-savebadge' + (disc > 0 ? ' shown' : '') + '">' + (disc > 0 ? ('You save ' + ppMoney(save) + '  ·  ' + disc + '% off') : '') + '</span>' +
+    '</div>' +
+    '<div class="pp2-per">' + ppMoney(perShown) + ' <span>per class</span></div>' +
     dur + kit +
-    '<div class="pp2-inst"><span>' + ppMoney(plan.monthly) + '</span> / mo for ' + meta.months + ' months</div>' +
+    '<div class="pp2-inst"><span>' + ppMoney(monthlyShown) + '</span> / mo for ' + meta.months + ' months</div>' +
   '</div>';
 }
 
@@ -2357,16 +2482,25 @@ function buildParentPricingHTML() {
   const money = n => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: (n % 1) ? 2 : 0 });
 
   const cards = plans.map(p => {
+    const disc = (p.classes === ppSel) ? ppDisc : 0;
+    const full = p.price;
+    const shown = disc > 0 ? Math.round(full * (1 - disc / 100)) : full;
+    const save = full - shown;
+    const per = Math.round(shown / p.classes);
+    const mo = shown / meta.months;
     const seal = p.isBest ? '<div class="seal">Best value</div>' : '';
-    const save = p.savePct > 0 ? '<span class="save">Save ' + p.savePct + '% vs starter</span>' : '';
+    const sel = (p.classes === ppSel) ? ' sel' : '';
+    const orig = disc > 0 ? '<div class="orig">' + money(full) + '</div>' : '';
+    const badge = disc > 0 ? '<div class="savebig">You save ' + money(save) + '  ·  ' + disc + '% off</div>' : '';
+    const saveVs = (p.savePct > 0 && disc === 0) ? '<span class="save">Save ' + p.savePct + '% vs starter</span>' : '';
     const kit = p.kitLabel ? '<div class="kit">Includes <strong>' + p.kitLabel + '</strong> robotics kit' + (p.kitLabel === '1' ? '' : 's') + '</div>' : '';
     const dur = p.duration ? '<div class="dur">About ' + p.duration.display + ' at ' + meta.perWeek + '/week</div>' : '';
-    return '<div class="card' + (p.isBest ? ' best' : '') + '">' + seal +
-      '<div class="ct"><span class="sess">' + p.classes + ' sessions</span>' + save + '</div>' +
-      '<div class="price">' + money(p.price) + '</div>' +
-      '<div class="per">' + money(Math.round(p.perClass)) + ' <span>per class</span></div>' +
+    return '<div class="card' + (p.isBest ? ' best' : '') + sel + '">' + seal +
+      '<div class="ct"><span class="sess">' + p.classes + ' sessions</span>' + saveVs + '</div>' +
+      orig + '<div class="price">' + money(shown) + '</div>' + badge +
+      '<div class="per">' + money(per) + ' <span>per class</span></div>' +
       dur + kit +
-      '<div class="inst"><span>' + money(p.monthly) + '</span> / mo for ' + meta.months + ' months</div>' +
+      '<div class="inst"><span>' + money(mo) + '</span> / mo for ' + meta.months + ' months</div>' +
     '</div>';
   }).join('');
 
@@ -2395,23 +2529,26 @@ function buildParentPricingHTML() {
     '.brand .nm{font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#e9e6f0;}' +
     '.brand .nm em{font-style:normal;font-weight:400;}' +
     '.hero{text-align:center;margin-bottom:44px;}' +
-    '.eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#c9a86a;margin-bottom:14px;}' +
+    '.eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#d4af6a;margin-bottom:14px;}' +
     'h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;margin-bottom:14px;color:#f3f0e8;}' +
     'h1 em{font-style:italic;color:#b6a3e6;}' +
     '.sub{font-size:16px;color:#9a95ab;}' +
     '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:40px;}' +
     '.card{position:relative;background:#1e1d28;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:30px 26px 24px;}' +
-    '.card.best{border-color:#b08948;box-shadow:0 12px 34px rgba(176,137,72,0.2);}' +
-    '.seal{position:absolute;top:-11px;right:20px;background:#b08948;color:#15141c;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 12px;border-radius:20px;}' +
+    '.card.best{border-color:#c9a86a;box-shadow:0 12px 34px rgba(201,168,106,0.2);}' +
+    '.card.sel{border-color:#d4af6a;box-shadow:0 0 0 1px #d4af6a,0 14px 38px rgba(212,175,106,0.28);background:linear-gradient(160deg,rgba(212,175,106,0.12),transparent 55%),#1e1d28;}' +
+    '.seal{position:absolute;top:-11px;right:20px;background:linear-gradient(135deg,#f4d58a,#c9a86a);color:#4a3714;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 12px;border-radius:20px;}' +
     '.ct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;}' +
     '.sess{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#b6a3e6;}' +
     '.save{font-size:10px;font-weight:700;color:#66d99a;background:rgba(52,199,89,0.14);padding:3px 9px;border-radius:20px;white-space:nowrap;}' +
+    '.orig{font-size:16px;color:#7d7890;text-decoration:line-through;margin-bottom:2px;}' +
     '.price{font-family:Georgia,"Times New Roman",serif;font-size:52px;font-weight:600;line-height:1;letter-spacing:-0.02em;color:#f3f0e8;}' +
-    '.per{font-size:14px;color:#9a95ab;margin-top:8px;}' +
+    '.savebig{display:inline-block;margin-top:10px;font-size:12px;font-weight:800;color:#4a3714;background:linear-gradient(135deg,#f4d58a,#c9a86a);padding:5px 12px;border-radius:20px;}' +
+    '.per{font-size:14px;color:#9a95ab;margin-top:10px;}' +
     '.per span{color:#6f6a80;}' +
     '.dur{font-size:13px;color:#8b8698;margin-top:14px;}' +
     '.kit{font-size:13px;color:#cfcbd9;margin-top:8px;}' +
-    '.kit strong{color:#c9a86a;}' +
+    '.kit strong{color:#d4af6a;}' +
     '.inst{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;color:#8b8698;}' +
     '.inst span{font-family:Georgia,serif;font-weight:600;color:#f3f0e8;font-size:18px;}' +
     '.payline{margin-top:44px;text-align:center;}' +
