@@ -1040,6 +1040,7 @@
       <span id="user-email" style="font-size:11px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;"></span>
       <input type="file" id="import-file" accept=".json" style="display:none">
       <button class="btn btn-secondary" id="pricing-btn">💰 Pricing</button>
+      <button class="btn btn-secondary" id="curriculum-btn">Curriculum</button>
       <button class="btn btn-secondary" id="templates-btn">Templates</button>
       <button class="btn btn-secondary" id="import-btn">Import</button>
       <button class="btn btn-secondary" id="export-btn">Export</button>
@@ -2265,7 +2266,7 @@ function getPricingPlans() {
       extended: !!t.extended,
       isBest: t.classes === bestClasses && realTiers.length > 1,
       savePct: savePct,
-      kitLabel: meta.hasKits ? kitLabelFor(t.classes) : null,
+      kitLabel: meta.hasKits ? (meta.level === 'g1-2' ? String(Math.max(1, Math.round(t.classes / 15))) : kitLabelFor(t.classes)) : null,
       duration: calcDurationFromClasses(t.classes, meta.perWeek),
       monthly: t.price / meta.months
     };
@@ -2565,6 +2566,172 @@ function buildParentPricingHTML() {
 
 function showParentPricing() {
   const html = buildParentPricingHTML();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
+}
+
+// ============ CURRICULUM EXPLAINER (show parents what the child builds) ============
+const CURRICULUM_DATA = {
+  robotics: {
+    'g1-2': {
+      title: 'Robotics · Grades 1 to 2',
+      stats: [['60', 'live classes'], ['4', 'hands-on kits'], ['4', 'fun missions']],
+      modules: [
+        {
+          n: 1, name: 'Jugaad Jack', tag: 'The Inventor', color: '#c2570c', light: '#fbeee0', icon: 'bulb',
+          becomes: 'Your child becomes a little inventor, building real working gadgets with their own hands instead of just reading about science.',
+          builds: ['Electric Boat', 'Candy Dispenser', 'Mini Vacuum', 'LED Propeller', 'Pencil Sharpener', 'Solar Project'],
+          learns: ['Electricity', 'Light & optics', 'Motion', 'Engineering', 'Solar energy'],
+          real: 'Just like how a torch glows or a fan spins, they build it themselves and finally understand why it works.'
+        },
+        {
+          n: 2, name: 'Gadget Genius', tag: 'The Coder', color: '#2563eb', light: '#e8f0fe', icon: 'code',
+          becomes: 'Your child starts coding the fun way on a tiny kid-computer, using drag-and-drop blocks with no hard typing.',
+          builds: ['Dice Simulator', 'Step Counter', 'Compass', 'Door Alarm', 'Night Light', 'Password Lock'],
+          learns: ['Coding basics', 'Loops & logic', 'Sensors', 'Problem solving'],
+          real: 'The same way a phone counts your steps or streetlights switch on at night, your child programs it.'
+        },
+        {
+          n: 3, name: 'Electronics Elite', tag: 'The Circuit Whiz', color: '#0f9d6b', light: '#e4f6ee', icon: 'bolt',
+          becomes: 'Your child goes deeper into circuits and builds real devices like the ones used in homes and hospitals.',
+          builds: ['Traffic Light', 'Fan Regulator', 'Water Alarm', 'Intruder Alarm', 'Ambulance Siren', 'Buzz Wire Game'],
+          learns: ['Circuits', 'Motors & sound', 'Conductors', 'Energy', 'RGB lighting'],
+          real: 'From festival lights to home alarms, they start to see how the everyday electronics around them actually work.'
+        },
+        {
+          n: 4, name: 'Mechanics Maverick', tag: 'The Machine Master', color: '#dc2626', light: '#fdeaea', icon: 'gear',
+          becomes: 'Your child learns physics through machines and discovers how the things around them really move.',
+          builds: ['Catapult', 'Gear Systems', 'Pulleys', 'Toy Dissection', 'Balancing Toys'],
+          learns: ['Force & motion', 'Simple machines', 'Gears', 'Hydraulics', 'Balance'],
+          real: 'Why a bicycle stays up, how a crane lifts, why a rocket launches, they build things to find out.'
+        }
+      ],
+      outcome: 'By the end, your child has a mini engineering lab at home. Instead of learning science from a book, they build, code, test, and discover how everyday technology works, finishing every single class with something they made themselves.'
+    }
+  }
+};
+
+function curriculumRobot(color, type) {
+  const icons = {
+    bulb: '<circle cx="50" cy="76" r="5.5" fill="none" stroke="' + color + '" stroke-width="2.4"/><path d="M50 81.5 v3.5 M46.5 88 h7" stroke="' + color + '" stroke-width="2.4" stroke-linecap="round"/>',
+    code: '<text x="50" y="83" font-family="Menlo,Consolas,monospace" font-size="12" font-weight="700" fill="' + color + '" text-anchor="middle">&lt;/&gt;</text>',
+    bolt: '<path d="M53 69 l-9 12 h5 l-3 8 10-13 h-5 z" fill="' + color + '"/>',
+    gear: '<circle cx="50" cy="78" r="6" fill="none" stroke="' + color + '" stroke-width="2.4"/><circle cx="50" cy="78" r="2" fill="' + color + '"/><g stroke="' + color + '" stroke-width="2.2" stroke-linecap="round"><path d="M50 70v-3M50 89v-3M42 78h-3M61 78h-3"/></g>'
+  };
+  return '<svg class="robot" viewBox="0 0 100 128" xmlns="http://www.w3.org/2000/svg">' +
+    '<line x1="50" y1="16" x2="50" y2="8" stroke="' + color + '" stroke-width="3" stroke-linecap="round"/>' +
+    '<circle cx="50" cy="6" r="4" fill="' + color + '"/>' +
+    '<rect x="24" y="16" width="52" height="42" rx="13" fill="#ffffff" stroke="' + color + '" stroke-width="3"/>' +
+    '<circle cx="39" cy="36" r="5.5" fill="' + color + '"/><circle cx="61" cy="36" r="5.5" fill="' + color + '"/>' +
+    '<circle cx="40.6" cy="34.4" r="1.6" fill="#ffffff"/><circle cx="62.6" cy="34.4" r="1.6" fill="#ffffff"/>' +
+    '<path d="M42 46 q8 6 16 0" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<rect x="46" y="58" width="8" height="6" fill="' + color + '"/>' +
+    '<rect x="28" y="63" width="44" height="42" rx="12" fill="' + color + '" opacity="0.14"/>' +
+    '<rect x="28" y="63" width="44" height="42" rx="12" fill="none" stroke="' + color + '" stroke-width="3"/>' +
+    '<rect x="40" y="67" width="20" height="24" rx="4" fill="#ffffff" stroke="' + color + '" stroke-width="2"/>' +
+    (icons[type] || '') +
+    '<rect x="16" y="66" width="9" height="26" rx="4.5" fill="' + color + '"/>' +
+    '<rect x="75" y="66" width="9" height="26" rx="4.5" fill="' + color + '"/>' +
+    '<rect x="38" y="105" width="9" height="15" rx="4" fill="' + color + '"/>' +
+    '<rect x="53" y="105" width="9" height="15" rx="4" fill="' + color + '"/>' +
+  '</svg>';
+}
+
+function buildCurriculumHTML(course, level) {
+  const data = CURRICULUM_DATA[course] && CURRICULUM_DATA[course][level];
+  const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  if (!data) return '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:40px;">No curriculum available yet.</body></html>';
+
+  const tabs = data.modules.map((m, i) =>
+    '<button class="ctab' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="--c:' + m.color + ';--cl:' + m.light + '">' +
+      '<span class="ctab-rob">' + curriculumRobot(m.color, m.icon) + '</span>' +
+      '<span class="ctab-lbl"><b>Module ' + m.n + '</b>' + safe(m.name) + '</span>' +
+    '</button>').join('');
+
+  const panels = data.modules.map((m, i) =>
+    '<div class="cpanel' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="--c:' + m.color + ';--cl:' + m.light + '">' +
+      '<div class="cpanel-rob">' + curriculumRobot(m.color, m.icon) + '</div>' +
+      '<div class="cpanel-body">' +
+        '<div class="cp-eyebrow">Module ' + m.n + ' · ' + safe(m.tag) + '</div>' +
+        '<h2>' + safe(m.name) + '</h2>' +
+        '<p class="cp-becomes">' + safe(m.becomes) + '</p>' +
+        '<div class="cp-sec">They will build</div>' +
+        '<div class="cp-chips builds">' + m.builds.map(x => '<span>' + safe(x) + '</span>').join('') + '</div>' +
+        '<div class="cp-sec">Skills they gain</div>' +
+        '<div class="cp-chips skills">' + m.learns.map(x => '<span>' + safe(x) + '</span>').join('') + '</div>' +
+        '<div class="cp-real">' + safe(m.real) + '</div>' +
+      '</div>' +
+    '</div>').join('');
+
+  const stats = data.stats.map(x => '<span><b>' + safe(x[0]) + '</b> ' + safe(x[1]) + '</span>').join('');
+
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<title>BrightCHAMPS · What your child will build</title><style>' +
+    '*{margin:0;padding:0;box-sizing:border-box;}' +
+    "body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;" +
+      'background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}' +
+    '.cwrap{max-width:1040px;margin:0 auto;padding:46px 22px 68px;}' +
+    '.cbrand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}' +
+    '.cbrand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}' +
+    '.cbrand .nm{font-size:18px;font-weight:700;}.cbrand .nm em{font-weight:400;font-style:normal;}' +
+    '.chero{text-align:center;margin-bottom:34px;}' +
+    '.chero .eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:800;color:#7453D7;margin-bottom:12px;}' +
+    '.chero h1{font-size:40px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;margin-bottom:14px;}' +
+    '.chero h1 em{font-style:normal;color:#7453D7;}' +
+    '.chero .stats{display:inline-flex;gap:20px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#6b6480;font-weight:600;}' +
+    '.chero .stats b{color:#241d3a;font-size:16px;}' +
+    '.ctabs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}' +
+    '.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px 12px;border:2px solid #ece9f6;border-radius:18px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}' +
+    '.ctab:hover{border-color:var(--c);transform:translateY(-2px);}' +
+    '.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 10px 24px rgba(0,0,0,0.06);}' +
+    '.ctab-rob svg{width:50px;height:auto;display:block;}' +
+    '.ctab-lbl{text-align:center;font-size:12px;color:#4a4460;font-weight:600;line-height:1.25;}' +
+    '.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1px;}' +
+    '.cpanel{display:none;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}' +
+    '.cpanel.on{display:grid;animation:cfade .35s ease;}' +
+    '@keyframes cfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}' +
+    '.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}' +
+    '.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}' +
+    '@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}' +
+    '.cp-eyebrow{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}' +
+    '.cpanel h2{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}' +
+    '.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}' +
+    '.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}' +
+    '.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}' +
+    '.cp-chips span{font-size:13px;font-weight:600;padding:7px 13px;border-radius:20px;}' +
+    '.cp-chips.builds span{background:var(--cl);color:var(--c);}' +
+    '.cp-chips.skills span{background:#f3f1fa;color:#5a5470;}' +
+    '.cp-real{margin-top:20px;padding:14px 16px;border-left:3px solid var(--c);background:#faf9ff;border-radius:0 10px 10px 0;font-size:14px;color:#4a4460;line-height:1.55;}' +
+    '.coutcome{margin-top:32px;text-align:center;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-radius:24px;padding:34px 30px;}' +
+    '.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}' +
+    '.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:680px;margin:0 auto;}' +
+    '.cfoot{text-align:center;margin-top:26px;font-size:12px;color:#a49fb5;}' +
+    '@media(max-width:720px){.ctabs{grid-template-columns:repeat(2,1fr);}.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:29px;}}' +
+    '</style></head><body><div class="cwrap">' +
+      '<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>' +
+      '<div class="chero">' +
+        '<div class="eyebrow">' + safe(data.title) + '</div>' +
+        '<h1>What your child will <em>build</em>.</h1>' +
+        '<div class="stats">' + stats + '</div>' +
+      '</div>' +
+      '<div class="ctabs">' + tabs + '</div>' +
+      '<div class="cpanels">' + panels + '</div>' +
+      '<div class="coutcome"><h3>A mini engineering lab at home</h3><p>' + safe(data.outcome) + '</p></div>' +
+      '<div class="cfoot">Tap each module above to explore what your child builds and learns.</div>' +
+    '</div>' +
+    '<' + 'script>' +
+    "document.querySelectorAll('.ctab').forEach(function(t){t.addEventListener('click',function(){var i=t.dataset.i;" +
+    "document.querySelectorAll('.ctab').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});" +
+    "document.querySelectorAll('.cpanel').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});" +
+    "window.scrollTo({top:document.querySelector('.ctabs').offsetTop-20,behavior:'smooth'});});});" +
+    '</' + 'script></body></html>';
+}
+
+function showCurriculum() {
+  const html = buildCurriculumHTML('robotics', 'g1-2');
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
@@ -4014,6 +4181,7 @@ function bindUI() {
 
   // Pricing Presenter
   document.getElementById('pricing-btn').addEventListener('click', openPricingModal);
+  document.getElementById('curriculum-btn').addEventListener('click', showCurriculum);
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
   document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
