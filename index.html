@@ -1215,8 +1215,12 @@
         <label for="pricing-course">Subject</label>
         <select id="pricing-course">
           <option value="math">Math</option>
-          <option value="robotics">Robotics</option>
           <option value="coding">Coding</option>
+          <option value="science">Science</option>
+          <option value="genai">Gen AI</option>
+          <option value="finlit">Financial Literacy</option>
+          <option value="english">Public Speaking</option>
+          <option value="robotics">Robotics</option>
         </select>
       </div>
       <div class="form-group">
@@ -2099,42 +2103,39 @@ async function importData(event) {
 // preset are priced at the same best per-class. Minimum 30 sessions everywhere.
 
 const PRICING_DATA = {
-  math: {
-    name: 'Math',
-    kits: false,
-    levels: {
-      'g1-12': { label: 'Grades 1 to 12', gradeRange: 'Grades 1-12', min: 1, max: 12,
-        otm: [ {classes:45, price:1149}, {classes:90, price:1999}, {classes:150, price:2399} ],
-        oto: [ {classes:45, price:1499}, {classes:90, price:2549}, {classes:150, price:3099} ] }
-    }
-  },
+  math: { name:'Math', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:45,price:1149},{classes:90,price:1999},{classes:150,price:2399}], oto:[{classes:45,price:1499},{classes:90,price:2549},{classes:150,price:3099}] } } },
+  coding: { name:'Coding', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:45,price:1149},{classes:90,price:1999},{classes:150,price:2399}], oto:[{classes:45,price:1499},{classes:90,price:2549},{classes:150,price:3099}] } } },
+  science: { name:'Science', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:45,price:1149},{classes:90,price:1999},{classes:150,price:2399}], oto:[{classes:45,price:1499},{classes:90,price:2549},{classes:150,price:3099}] } } },
+  genai: { name:'Gen AI', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:50,price:1299},{classes:90,price:1999},{classes:125,price:2749}],
+    oto:[{classes:50,price:1699},{classes:90,price:2549},{classes:125,price:3599}] } } },
+  finlit: { name:'Financial Literacy', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:45,price:1149},{classes:90,price:1999},{classes:150,price:2399}], oto:[{classes:45,price:1499},{classes:90,price:2549},{classes:150,price:3099}] } } },
+  english: { name:'Public Speaking', kits:false, levels:{ 'g1-12':{ label:'Grades 1 to 12', gradeRange:'Grades 1-12',
+    otm:[{classes:45,price:1149},{classes:90,price:1999},{classes:144,price:3149}],
+    oto:[{classes:45,price:1499},{classes:90,price:2549},{classes:150,price:3099}] } } },
   robotics: {
     name: 'Robotics',
     kits: true,
     levels: {
-      'g1-2': { label: 'Grades 1 to 2', gradeRange: 'Grades 1-2', min: 1, max: 2, kitName: 'Robo Xcel',
+      'g1-2': {
+        label: 'Grades 1 to 2', gradeRange: 'Grades 1-2', kitName: 'Robo Xcel',
         otm: [ {classes:30, price:799}, {classes:60, price:1549} ],
-        oto: [ {classes:30, price:999}, {classes:60, price:2049} ] },
-      'g3-6': { label: 'Grades 3 to 6', gradeRange: 'Grades 3-6', min: 3, max: 6, kitName: 'Robo Xplore',
+        oto: [ {classes:30, price:999}, {classes:60, price:2049} ]
+      },
+      'g3-6': {
+        label: 'Grades 3 to 6', gradeRange: 'Grades 3-6', kitName: 'Robo Xplore',
         otm: [ {classes:30, price:799}, {classes:60, price:1549}, {classes:90, price:1999}, {classes:135, price:2949}, {classes:282, price:4499} ],
-        oto: [ {classes:30, price:999}, {classes:60, price:2049}, {classes:90, price:2549}, {classes:135, price:3849}, {classes:282, price:5849} ] },
-      'g7-12': { label: 'Grades 7 to 12', gradeRange: 'Grades 7-12', min: 7, max: 12, kitName: 'Robo Xceed',
+        oto: [ {classes:30, price:999}, {classes:60, price:2049}, {classes:90, price:2549}, {classes:135, price:3849}, {classes:282, price:5849} ]
+      },
+      'g7-12': {
+        label: 'Grades 7 to 12', gradeRange: 'Grades 7-12', kitName: 'Robo Xceed',
         otm: [ {classes:30, price:799}, {classes:60, price:1549}, {classes:105, price:2299}, {classes:165, price:2649}, {classes:312, price:4999} ],
-        oto: [ {classes:30, price:999}, {classes:60, price:2049}, {classes:105, price:2999}, {classes:165, price:3449}, {classes:312, price:6499} ] }
-    }
-  },
-  coding: {
-    name: 'Coding',
-    kits: false,
-    levels: {
-      lc: { label:'Little Champs', gradeRange:'Grade 2-3', min:2, max:3,
-        otm:[{classes:30,price:506},{classes:60,price:829}], oto:[{classes:30,price:619},{classes:60,price:1073}] },
-      jc: { label:'Junior Champs', gradeRange:'Grade 4-6', min:4, max:6,
-        otm:[{classes:30,price:506},{classes:60,price:829},{classes:90,price:1243},{classes:282,price:2468}],
-        oto:[{classes:30,price:619},{classes:60,price:1073},{classes:90,price:1609},{classes:282,price:3490}] },
-      sc: { label:'Senior Champs', gradeRange:'Grade 7-9', min:7, max:9,
-        otm:[{classes:30,price:506},{classes:60,price:829},{classes:105,price:1450},{classes:312,price:2730}],
-        oto:[{classes:30,price:619},{classes:60,price:1073},{classes:105,price:1877},{classes:312,price:3861}] }
+        oto: [ {classes:30, price:999}, {classes:60, price:2049}, {classes:105, price:2999}, {classes:165, price:3449}, {classes:312, price:6499} ]
+      }
     }
   }
 };
@@ -2148,27 +2149,6 @@ function kitCountFor(sessions) {
 }
 function kitLabelFor(sessions) {
   return sessions >= 280 ? '6 to 8' : String(kitCountFor(sessions));
-}
-
-// Individual grades a subject covers, and which pricing band a grade maps to
-function courseGrades(course) {
-  const cd = PRICING_DATA[course];
-  if (!cd) return [];
-  let lo = Infinity, hi = -Infinity;
-  Object.keys(cd.levels).forEach(k => { lo = Math.min(lo, cd.levels[k].min); hi = Math.max(hi, cd.levels[k].max); });
-  const arr = [];
-  for (let g = lo; g <= hi; g++) arr.push(g);
-  return arr;
-}
-function gradeToLevelKey(course, grade) {
-  const cd = PRICING_DATA[course];
-  if (!cd) return null;
-  const keys = Object.keys(cd.levels);
-  for (let i = 0; i < keys.length; i++) {
-    const l = cd.levels[keys[i]];
-    if (grade >= l.min && grade <= l.max) return keys[i];
-  }
-  return keys[0];
 }
 
 // Best (lowest) per-class among presets for a level+format, rounded to whole dollars
@@ -2188,20 +2168,28 @@ function calcDurationFromClasses(totalClasses, classesPerWeek) {
   const months = weeks / 4.33;
   const years = months / 12;
   let display;
-  if (months < 1) {
-    display = Math.round(weeks) + ' weeks';
-  } else if (months < 12) {
-    display = Math.round(months) + ' months';
-  } else {
+  if (months < 1) { display = Math.round(weeks) + ' weeks'; }
+  else if (months < 12) { display = Math.round(months) + ' months'; }
+  else {
     const yr = Math.floor(years);
     const remMonths = Math.round((years - yr) * 12);
-    if (remMonths === 0) {
-      display = yr + ' year' + (yr > 1 ? 's' : '');
-    } else {
-      display = yr + ' year' + (yr > 1 ? 's' : '') + ' ' + remMonths + ' month' + (remMonths > 1 ? 's' : '');
-    }
+    display = remMonths === 0
+      ? (yr + ' year' + (yr > 1 ? 's' : ''))
+      : (yr + ' year' + (yr > 1 ? 's' : '') + ' ' + remMonths + ' month' + (remMonths > 1 ? 's' : ''));
   }
   return { weeks: Math.round(weeks), months: Math.round(months), display: display };
+}
+
+// Individual grades a subject covers, and which pricing band a grade maps to
+function courseGrades(course) {
+  if (course === 'sat') return [9, 10, 11, 12];
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+}
+function gradeToLevelKey(course, grade) {
+  if (course === 'robotics') { if (grade <= 2) return 'g1-2'; if (grade <= 6) return 'g3-6'; return 'g7-12'; }
+  const cd = PRICING_DATA[course];
+  if (cd) { const keys = Object.keys(cd.levels); if (keys.length === 1) return keys[0]; }
+  return 'g1-12';
 }
 
 function getPricingState() {
