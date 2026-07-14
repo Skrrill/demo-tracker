@@ -2576,162 +2576,290 @@ function showParentPricing() {
 const CURRICULUM_DATA = {
   robotics: {
     'g1-2': {
-      title: 'Robotics · Grades 1 to 2',
-      stats: [['60', 'live classes'], ['4', 'hands-on kits'], ['4', 'fun missions']],
+      gradeLabel: 'Grades 1 to 2', title: 'Robotics · Grades 1 to 2',
+      stats: [['60','live classes'],['4','robotics kits'],['4','fun missions']],
+      outcomeTitle: 'A mini engineering lab at home',
+      outcome: 'By the end, your child has a mini engineering lab at home. Instead of learning science from a book, they build, code, test, and discover how everyday technology works, finishing every single class with something they made themselves.',
       modules: [
-        {
-          n: 1, name: 'Jugaad Jack', tag: 'The Inventor', color: '#c2570c', light: '#fbeee0', icon: 'bulb',
-          becomes: 'Your child becomes a little inventor, building real working gadgets with their own hands instead of just reading about science.',
-          builds: ['Electric Boat', 'Candy Dispenser', 'Mini Vacuum', 'LED Propeller', 'Pencil Sharpener', 'Solar Project'],
-          learns: ['Electricity', 'Light & optics', 'Motion', 'Engineering', 'Solar energy'],
-          real: 'Just like how a torch glows or a fan spins, they build it themselves and finally understand why it works.'
-        },
-        {
-          n: 2, name: 'Gadget Genius', tag: 'The Coder', color: '#2563eb', light: '#e8f0fe', icon: 'code',
-          becomes: 'Your child starts coding the fun way on a tiny kid-computer, using drag-and-drop blocks with no hard typing.',
-          builds: ['Dice Simulator', 'Step Counter', 'Compass', 'Door Alarm', 'Night Light', 'Password Lock'],
-          learns: ['Coding basics', 'Loops & logic', 'Sensors', 'Problem solving'],
-          real: 'The same way a phone counts your steps or streetlights switch on at night, your child programs it.'
-        },
-        {
-          n: 3, name: 'Electronics Elite', tag: 'The Circuit Whiz', color: '#0f9d6b', light: '#e4f6ee', icon: 'bolt',
-          becomes: 'Your child goes deeper into circuits and builds real devices like the ones used in homes and hospitals.',
-          builds: ['Traffic Light', 'Fan Regulator', 'Water Alarm', 'Intruder Alarm', 'Ambulance Siren', 'Buzz Wire Game'],
-          learns: ['Circuits', 'Motors & sound', 'Conductors', 'Energy', 'RGB lighting'],
-          real: 'From festival lights to home alarms, they start to see how the everyday electronics around them actually work.'
-        },
-        {
-          n: 4, name: 'Mechanics Maverick', tag: 'The Machine Master', color: '#dc2626', light: '#fdeaea', icon: 'gear',
-          becomes: 'Your child learns physics through machines and discovers how the things around them really move.',
-          builds: ['Catapult', 'Gear Systems', 'Pulleys', 'Toy Dissection', 'Balancing Toys'],
-          learns: ['Force & motion', 'Simple machines', 'Gears', 'Hydraulics', 'Balance'],
-          real: 'Why a bicycle stays up, how a crane lifts, why a rocket launches, they build things to find out.'
-        }
-      ],
-      outcome: 'By the end, your child has a mini engineering lab at home. Instead of learning science from a book, they build, code, test, and discover how everyday technology works, finishing every single class with something they made themselves.'
+        { n:1, name:'Jugaad Jack', tag:'The Inventor', color:'#c2570c', light:'#fbeee0', icon:'bulb',
+          becomes:'Your child becomes a little inventor, building real working gadgets with their own hands.',
+          builds:['Electric Boat','Candy Dispenser','Mini Vacuum','LED Propeller','Solar Project'],
+          learns:['Electricity','Light & optics','Motion','Engineering'],
+          real:'Just like how a torch glows or a fan spins, they build it themselves and finally understand why.' },
+        { n:2, name:'Gadget Genius', tag:'The Coder', color:'#2563eb', light:'#e8f0fe', icon:'code',
+          becomes:'Your child starts coding the fun way on a tiny kid-computer, drag-and-drop, no hard typing.',
+          builds:['Dice Simulator','Step Counter','Compass','Door Alarm','Password Lock'],
+          learns:['Coding basics','Loops & logic','Sensors','Problem solving'],
+          real:'The same way a phone counts your steps or streetlights switch on at night, they program it.' },
+        { n:3, name:'Electronics Elite', tag:'The Circuit Whiz', color:'#0f9d6b', light:'#e4f6ee', icon:'bolt',
+          becomes:'Your child goes deeper into circuits and builds real devices used in homes and hospitals.',
+          builds:['Traffic Light','Fan Regulator','Water Alarm','Ambulance Siren','Buzz Wire Game'],
+          learns:['Circuits','Motors & sound','Conductors','RGB lighting'],
+          real:'From festival lights to home alarms, they see how everyday electronics actually work.' },
+        { n:4, name:'Mechanics Maverick', tag:'The Machine Master', color:'#dc2626', light:'#fdeaea', icon:'gear',
+          becomes:'Your child learns physics through machines and discovers how things really move.',
+          builds:['Catapult','Gear Systems','Pulleys','Toy Dissection','Balancing Toys'],
+          learns:['Force & motion','Simple machines','Gears','Balance'],
+          real:'Why a bicycle stays up, how a crane lifts, why a rocket launches, they build to find out.' }
+      ]
+    },
+    'g3-6': {
+      gradeLabel: 'Grades 3 to 6', title: 'Robotics · Grades 3 to 6',
+      stats: [['120','live classes'],['4','robotics kits'],['9','missions']],
+      outcomeTitle: 'From robots to smart homes',
+      outcome: 'Your child moves from building robots, to programming them, to making them intelligent with AI, connecting them to the internet, and finally creating complete smart home systems, all through hands-on projects. They do not just learn technology, they create it.',
+      modules: [
+        { n:1, name:'Robotics Foundation', tag:'The Builder', color:'#c2570c', light:'#fbeee0', icon:'gear',
+          becomes:'Your child builds a strong robotics base, learning how robots move, sense, and follow code.',
+          builds:['Line Following Robot','Tokyo Drift Robot','Colour Soccer','Robo Piano','Security Robot'],
+          learns:['Motors & movement','Sensors','Programming','Automation'],
+          real:'Just like a remote-control car moves when you press forward, their robot moves because they programmed it.' },
+        { n:2, name:'Fundamentals of AI & ML', tag:'The AI Explorer', color:'#2563eb', light:'#e8f0fe', icon:'chip',
+          becomes:'Your child discovers how AI actually works by building real AI projects, not by theory.',
+          builds:['Face Detection','Voice Assistant','Gesture Calculator','Sign Language Interpreter','AI Games'],
+          learns:['AI basics','Machine learning','Voice & vision','Pattern recognition'],
+          real:'How your phone unlocks by looking at your face, or Netflix suggests shows, that is AI, and they build simple versions.' },
+        { n:3, name:'AI & ML for Robots', tag:'The Robot Trainer', color:'#0f9d6b', light:'#e4f6ee', icon:'eye',
+          becomes:'Your child combines AI with robotics so the robot starts making its own decisions.',
+          builds:['Object-detecting Robot','Gesture Robot','Voice-controlled Robot','Robot Pet'],
+          learns:['Computer vision','Voice & gesture','Face recognition','Training robots'],
+          real:'Like self-driving cars detecting roads, or robot vacuums avoiding furniture.' },
+        { n:4, name:'Functional Robotics', tag:'The Problem Solver', color:'#dc2626', light:'#fdeaea', icon:'gear',
+          becomes:'Your child builds robots that solve real problems, like delivery and cleaning robots.',
+          builds:['Delivery Robot','Sweeping Robot','Smart Dustbin','Restaurant Robot'],
+          learns:['Servo motors','Gyro & ultrasonic','Autonomous navigation'],
+          real:'Like restaurant robots that bring food right to your table.' },
+        { n:5, name:'Physical Computing', tag:'The Electronics Whiz', color:'#7c3aed', light:'#f0e9fd', icon:'bolt',
+          becomes:'Your child learns what happens inside every electronic device by building circuits.',
+          builds:['Automatic Night Lamp','Delayed Timer','RGB Colour Mixer','Joystick Games'],
+          learns:['Circuits','Ohm\u2019s law','Components','Logic gates'],
+          real:'Why a bulb glows, and how the tiny parts inside a phone or TV actually work.' },
+        { n:6, name:'Interactive Mechatronics', tag:'The Systems Engineer', color:'#0891b2', light:'#e0f5fa', icon:'gear',
+          becomes:'Your child combines machines, electronics, and code into one smart system.',
+          builds:['Self-Driving Robot','RADAR','QR Gate','Gripper Arm'],
+          learns:['Autonomous systems','Obstacle detection','Smart access'],
+          real:'Like Tesla avoiding collisions, or the security gates at an apartment.' },
+        { n:7, name:'Internet of Things', tag:'The Connector', color:'#db2777', light:'#fce7f1', icon:'wifi',
+          becomes:'Your child connects devices through the internet to build smart homes.',
+          builds:['IoT Smart House','Smart Door','Weather Station','Smart Shopping Cart'],
+          learns:['Cloud & communication','Smart home sensors','Automation & security'],
+          real:'Control your home lights from your phone, exactly like a modern smart home.' },
+        { n:8, name:'Sensory Systems', tag:'The Sensor Master', color:'#4f46e5', light:'#e9e8fc', icon:'sensor',
+          becomes:'Your child masters how machines collect information from the world using sensors.',
+          builds:['Visitor Counter','Automatic Sanitizer','Smart Garden','RFID Projects'],
+          learns:['Environmental sensors','RFID','Automation'],
+          real:'Automatic sanitizer machines, or metro cards and hotel key cards.' },
+        { n:9, name:'Home Automation', tag:'The Smart Home Creator', color:'#ca8a04', light:'#fbf3d9', icon:'house',
+          becomes:'Your child combines everything to build a complete smart home system.',
+          builds:['Voice Controlled Lights','AI Security','Air Quality Monitor','Auto Plant Watering'],
+          learns:['Integrated automation','Voice & gesture control','Monitoring'],
+          real:'"Alexa, turn on the lights", they build a simplified version of exactly that.' }
+      ]
+    },
+    'g7-12': {
+      gradeLabel: 'Grades 7 to 12', title: 'Robotics · Grades 7 to 12',
+      stats: [['150','live classes'],['8','robotics kits'],['11','missions']],
+      outcomeTitle: 'A complete engineering pathway',
+      outcome: 'A complete engineering pathway. Your child starts with how robots work, then builds AI-powered robots, smart homes, industrial robotic arms, humanoids, four-legged robots, and finally a Mars Rover-style explorer, the same core technologies powering modern robotics worldwide.',
+      modules: [
+        { n:1, name:'Robotics Foundation', tag:'The Builder', color:'#c2570c', light:'#fbeee0', icon:'gear',
+          becomes:'Your child builds a solid robotics base, learning how motors, sensors, and code work together.',
+          builds:['Line Following Robot','Tokyo Drift Robot','Colour Soccer','Security Bot'],
+          learns:['Motors & navigation','Sensors','Programming','Automation'],
+          real:'Like a remote-control car, except they program the robot to drive itself.' },
+        { n:2, name:'AI & ML for Robots', tag:'The Robot Trainer', color:'#0f9d6b', light:'#e4f6ee', icon:'eye',
+          becomes:'Your child makes robots intelligent so they begin making their own decisions.',
+          builds:['Object-recognizing Robot','Gesture Robot','Voice Robot','Robot Pet'],
+          learns:['Computer vision','Voice & gesture','Machine learning'],
+          real:'Like Tesla cars or self-driving delivery robots recognizing their surroundings.' },
+        { n:3, name:'Functional Robotics', tag:'The Problem Solver', color:'#2563eb', light:'#e8f0fe', icon:'gear',
+          becomes:'Your child builds robots that solve practical problems in the real world.',
+          builds:['Delivery Robot','Sweeping Robot','Smart Dustbin','Robotic Restaurant'],
+          learns:['Servo motors','Sensors','Autonomous navigation'],
+          real:'Warehouse robots carrying products, like the ones at Amazon.' },
+        { n:4, name:'Interactive Mechatronics', tag:'The Systems Engineer', color:'#dc2626', light:'#fdeaea', icon:'gear',
+          becomes:'Your child combines mechanical, electronics, and programming into intelligent machines.',
+          builds:['Self-Driving Robot','Radar','QR Gate','Robot Gripper Arm'],
+          learns:['Autonomous systems','Smart access','Obstacle avoidance'],
+          real:'Self-driving cars and the industrial robotic arms used in factories.' },
+        { n:5, name:'Internet of Things', tag:'The Connector', color:'#0891b2', light:'#e0f5fa', icon:'wifi',
+          becomes:'Your child connects devices through the internet to build smart systems.',
+          builds:['Smart House','Weather Station','Patient Monitor','Smart Shopping Cart'],
+          learns:['Cloud','Smart home sensors','Automation & security'],
+          real:'Hospitals monitoring patients remotely, or modern precision farming.' },
+        { n:6, name:'Sensory Systems', tag:'The Sensor Master', color:'#4f46e5', light:'#e9e8fc', icon:'sensor',
+          becomes:'Your child masters sensors so robots can collect and use real-world information.',
+          builds:['Automatic Sanitizer','Smart Garden','Visitor Counter','RFID Projects'],
+          learns:['Environmental sensors','RFID','Automation'],
+          real:'Metro cards, office IDs, and warehouse tracking systems.' },
+        { n:7, name:'Home Automation', tag:'The Smart Home Creator', color:'#ca8a04', light:'#fbf3d9', icon:'house',
+          becomes:'Your child combines robotics, AI, IoT, and sensors into a complete smart home.',
+          builds:['Smart Doors','Voice Controlled Lights','Air Quality Analyzer','Auto Water Tank'],
+          learns:['Integrated automation','Voice & gesture control','Monitoring'],
+          real:'Premium smart homes controlled from a single dashboard.' },
+        { n:8, name:'Robotic Manipulator', tag:'The Arm Engineer', color:'#7c3aed', light:'#f0e9fd', icon:'arm',
+          becomes:'Your child builds industrial-style robotic arms that pick, place, and sort.',
+          builds:['Tea Maker','Robo T-Rex','Waste Segregator','Sorting Arm'],
+          learns:['Joints & mechanics','Motion & kinematics','Real-time control'],
+          real:'Robotic arms that assemble cars, or Amazon robots sorting packages.' },
+        { n:9, name:'Bipeds & Humanoids', tag:'The Humanoid Maker', color:'#db2777', light:'#fce7f1', icon:'face',
+          becomes:'Your child builds robots that walk, move, and respond like humans.',
+          builds:['Walking Humanoid','Dancing Robot','Face-tracking Robot'],
+          learns:['Servo coordination','Balance & motion','Computer vision'],
+          real:'Boston Dynamics humanoids, or reception robots in hotels.' },
+        { n:10, name:'Multi-Legged Robots', tag:'The Explorer', color:'#059669', light:'#e2f6ef', icon:'sensor',
+          becomes:'Your child builds animal-inspired four-legged robots that navigate tough places.',
+          builds:['Quadruped Robot','Obstacle-avoiding Walker','Cloud-connected Spot'],
+          learns:['Multi-servo control','Gait & movement','Advanced navigation'],
+          real:'Boston Dynamics\u2019 Spot robot inspecting factories and disaster sites.' },
+        { n:11, name:'All-Terrain Robots', tag:'The Mars Explorer', color:'#e11d48', light:'#fde8ec', icon:'wheel',
+          becomes:'Your child builds a Mars Rover-style robot that explores difficult terrain on its own.',
+          builds:['Rocker-Bogie Rover','Autonomous Explorer','Sensor Rover'],
+          learns:['Rover mechanics','Autonomous control','Computer vision','Environmental sensing'],
+          real:'NASA\u2019s Perseverance and Curiosity Mars Rovers.' }
+      ]
     }
   }
 };
 
 function curriculumRobot(color, type) {
-  const icons = {
-    bulb: '<circle cx="50" cy="76" r="5.5" fill="none" stroke="' + color + '" stroke-width="2.4"/><path d="M50 81.5 v3.5 M46.5 88 h7" stroke="' + color + '" stroke-width="2.4" stroke-linecap="round"/>',
-    code: '<text x="50" y="83" font-family="Menlo,Consolas,monospace" font-size="12" font-weight="700" fill="' + color + '" text-anchor="middle">&lt;/&gt;</text>',
-    bolt: '<path d="M53 69 l-9 12 h5 l-3 8 10-13 h-5 z" fill="' + color + '"/>',
-    gear: '<circle cx="50" cy="78" r="6" fill="none" stroke="' + color + '" stroke-width="2.4"/><circle cx="50" cy="78" r="2" fill="' + color + '"/><g stroke="' + color + '" stroke-width="2.2" stroke-linecap="round"><path d="M50 70v-3M50 89v-3M42 78h-3M61 78h-3"/></g>'
+  var C = color;
+  var icons = {
+    bulb: '<circle cx="50" cy="76" r="5.5" fill="none" stroke="'+C+'" stroke-width="2.4"/><path d="M50 81.5 v3.5 M46.5 88 h7" stroke="'+C+'" stroke-width="2.4" stroke-linecap="round"/>',
+    code: '<text x="50" y="83" font-family="Menlo,Consolas,monospace" font-size="12" font-weight="700" fill="'+C+'" text-anchor="middle">&lt;/&gt;</text>',
+    bolt: '<path d="M53 69 l-9 12 h5 l-3 8 10-13 h-5 z" fill="'+C+'"/>',
+    gear: '<circle cx="50" cy="78" r="6" fill="none" stroke="'+C+'" stroke-width="2.4"/><circle cx="50" cy="78" r="2" fill="'+C+'"/><g stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"><path d="M50 70v-3M50 89v-3M42 78h-3M61 78h-3"/></g>',
+    eye: '<ellipse cx="50" cy="79" rx="8" ry="5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="50" cy="79" r="2.6" fill="'+C+'"/>',
+    wifi: '<circle cx="50" cy="85" r="2" fill="'+C+'"/><path d="M45 81a7 7 0 0 1 10 0M42 78a12 12 0 0 1 16 0" fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"/>',
+    house: '<path d="M42 86v-8l8-6 8 6v8z" fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linejoin="round"/>',
+    sensor: '<circle cx="47" cy="82" r="2" fill="'+C+'"/><path d="M47 82l9-8" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"/><path d="M44 84a10 10 0 0 1 13-11" fill="none" stroke="'+C+'" stroke-width="2.2"/>',
+    chip: '<rect x="43" y="72" width="14" height="14" rx="2.5" fill="none" stroke="'+C+'" stroke-width="2.2"/><text x="50" y="82.5" font-family="Arial" font-size="7.5" font-weight="800" fill="'+C+'" text-anchor="middle">AI</text>',
+    arm: '<circle cx="44" cy="86" r="2.4" fill="'+C+'"/><path d="M44 86l4-7 8-2" fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="54" y="74" width="6" height="4" rx="1" fill="'+C+'"/>',
+    face: '<rect x="42" y="71" width="16" height="16" rx="5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="47" cy="78" r="1.5" fill="'+C+'"/><circle cx="53" cy="78" r="1.5" fill="'+C+'"/><path d="M47 83q3 2 6 0" fill="none" stroke="'+C+'" stroke-width="1.8" stroke-linecap="round"/>',
+    wheel: '<circle cx="50" cy="79" r="7.5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="50" cy="79" r="2" fill="'+C+'"/><g stroke="'+C+'" stroke-width="1.8" stroke-linecap="round"><path d="M50 72v3.5M50 82.5v3.5M42.5 79h3.5M54 79h3.5"/></g>'
   };
   return '<svg class="robot" viewBox="0 0 100 128" xmlns="http://www.w3.org/2000/svg">' +
-    '<line x1="50" y1="16" x2="50" y2="8" stroke="' + color + '" stroke-width="3" stroke-linecap="round"/>' +
-    '<circle cx="50" cy="6" r="4" fill="' + color + '"/>' +
-    '<rect x="24" y="16" width="52" height="42" rx="13" fill="#ffffff" stroke="' + color + '" stroke-width="3"/>' +
-    '<circle cx="39" cy="36" r="5.5" fill="' + color + '"/><circle cx="61" cy="36" r="5.5" fill="' + color + '"/>' +
+    '<line x1="50" y1="16" x2="50" y2="8" stroke="'+C+'" stroke-width="3" stroke-linecap="round"/>' +
+    '<circle cx="50" cy="6" r="4" fill="'+C+'"/>' +
+    '<rect x="24" y="16" width="52" height="42" rx="13" fill="#ffffff" stroke="'+C+'" stroke-width="3"/>' +
+    '<circle cx="39" cy="36" r="5.5" fill="'+C+'"/><circle cx="61" cy="36" r="5.5" fill="'+C+'"/>' +
     '<circle cx="40.6" cy="34.4" r="1.6" fill="#ffffff"/><circle cx="62.6" cy="34.4" r="1.6" fill="#ffffff"/>' +
-    '<path d="M42 46 q8 6 16 0" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"/>' +
-    '<rect x="46" y="58" width="8" height="6" fill="' + color + '"/>' +
-    '<rect x="28" y="63" width="44" height="42" rx="12" fill="' + color + '" opacity="0.14"/>' +
-    '<rect x="28" y="63" width="44" height="42" rx="12" fill="none" stroke="' + color + '" stroke-width="3"/>' +
-    '<rect x="40" y="67" width="20" height="24" rx="4" fill="#ffffff" stroke="' + color + '" stroke-width="2"/>' +
+    '<path d="M42 46 q8 6 16 0" fill="none" stroke="'+C+'" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<rect x="46" y="58" width="8" height="6" fill="'+C+'"/>' +
+    '<rect x="28" y="63" width="44" height="42" rx="12" fill="'+C+'" opacity="0.14"/>' +
+    '<rect x="28" y="63" width="44" height="42" rx="12" fill="none" stroke="'+C+'" stroke-width="3"/>' +
+    '<rect x="40" y="67" width="20" height="24" rx="4" fill="#ffffff" stroke="'+C+'" stroke-width="2"/>' +
     (icons[type] || '') +
-    '<rect x="16" y="66" width="9" height="26" rx="4.5" fill="' + color + '"/>' +
-    '<rect x="75" y="66" width="9" height="26" rx="4.5" fill="' + color + '"/>' +
-    '<rect x="38" y="105" width="9" height="15" rx="4" fill="' + color + '"/>' +
-    '<rect x="53" y="105" width="9" height="15" rx="4" fill="' + color + '"/>' +
+    '<rect x="16" y="66" width="9" height="26" rx="4.5" fill="'+C+'"/>' +
+    '<rect x="75" y="66" width="9" height="26" rx="4.5" fill="'+C+'"/>' +
+    '<rect x="38" y="105" width="9" height="15" rx="4" fill="'+C+'"/>' +
+    '<rect x="53" y="105" width="9" height="15" rx="4" fill="'+C+'"/>' +
   '</svg>';
 }
 
-function buildCurriculumHTML(course, level) {
-  const data = CURRICULUM_DATA[course] && CURRICULUM_DATA[course][level];
-  const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  if (!data) return '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:40px;">No curriculum available yet.</body></html>';
-
-  const tabs = data.modules.map((m, i) =>
-    '<button class="ctab' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="--c:' + m.color + ';--cl:' + m.light + '">' +
-      '<span class="ctab-rob">' + curriculumRobot(m.color, m.icon) + '</span>' +
-      '<span class="ctab-lbl"><b>Module ' + m.n + '</b>' + safe(m.name) + '</span>' +
-    '</button>').join('');
-
-  const panels = data.modules.map((m, i) =>
-    '<div class="cpanel' + (i === 0 ? ' on' : '') + '" data-i="' + i + '" style="--c:' + m.color + ';--cl:' + m.light + '">' +
-      '<div class="cpanel-rob">' + curriculumRobot(m.color, m.icon) + '</div>' +
-      '<div class="cpanel-body">' +
-        '<div class="cp-eyebrow">Module ' + m.n + ' · ' + safe(m.tag) + '</div>' +
-        '<h2>' + safe(m.name) + '</h2>' +
-        '<p class="cp-becomes">' + safe(m.becomes) + '</p>' +
-        '<div class="cp-sec">They will build</div>' +
-        '<div class="cp-chips builds">' + m.builds.map(x => '<span>' + safe(x) + '</span>').join('') + '</div>' +
-        '<div class="cp-sec">Skills they gain</div>' +
-        '<div class="cp-chips skills">' + m.learns.map(x => '<span>' + safe(x) + '</span>').join('') + '</div>' +
-        '<div class="cp-real">' + safe(m.real) + '</div>' +
-      '</div>' +
-    '</div>').join('');
-
-  const stats = data.stats.map(x => '<span><b>' + safe(x[0]) + '</b> ' + safe(x[1]) + '</span>').join('');
-
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '<title>BrightCHAMPS · What your child will build</title><style>' +
-    '*{margin:0;padding:0;box-sizing:border-box;}' +
-    "body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;" +
-      'background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}' +
-    '.cwrap{max-width:1040px;margin:0 auto;padding:46px 22px 68px;}' +
-    '.cbrand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px;}' +
-    '.cbrand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}' +
-    '.cbrand .nm{font-size:18px;font-weight:700;}.cbrand .nm em{font-weight:400;font-style:normal;}' +
-    '.chero{text-align:center;margin-bottom:34px;}' +
-    '.chero .eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:800;color:#7453D7;margin-bottom:12px;}' +
-    '.chero h1{font-size:40px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;margin-bottom:14px;}' +
-    '.chero h1 em{font-style:normal;color:#7453D7;}' +
-    '.chero .stats{display:inline-flex;gap:20px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#6b6480;font-weight:600;}' +
-    '.chero .stats b{color:#241d3a;font-size:16px;}' +
-    '.ctabs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}' +
-    '.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px 12px;border:2px solid #ece9f6;border-radius:18px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}' +
-    '.ctab:hover{border-color:var(--c);transform:translateY(-2px);}' +
-    '.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 10px 24px rgba(0,0,0,0.06);}' +
-    '.ctab-rob svg{width:50px;height:auto;display:block;}' +
-    '.ctab-lbl{text-align:center;font-size:12px;color:#4a4460;font-weight:600;line-height:1.25;}' +
-    '.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1px;}' +
-    '.cpanel{display:none;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}' +
-    '.cpanel.on{display:grid;animation:cfade .35s ease;}' +
-    '@keyframes cfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}' +
-    '.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}' +
-    '.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}' +
-    '@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}' +
-    '.cp-eyebrow{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}' +
-    '.cpanel h2{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}' +
-    '.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}' +
-    '.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}' +
-    '.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}' +
-    '.cp-chips span{font-size:13px;font-weight:600;padding:7px 13px;border-radius:20px;}' +
-    '.cp-chips.builds span{background:var(--cl);color:var(--c);}' +
-    '.cp-chips.skills span{background:#f3f1fa;color:#5a5470;}' +
-    '.cp-real{margin-top:20px;padding:14px 16px;border-left:3px solid var(--c);background:#faf9ff;border-radius:0 10px 10px 0;font-size:14px;color:#4a4460;line-height:1.55;}' +
-    '.coutcome{margin-top:32px;text-align:center;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-radius:24px;padding:34px 30px;}' +
-    '.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}' +
-    '.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:680px;margin:0 auto;}' +
-    '.cfoot{text-align:center;margin-top:26px;font-size:12px;color:#a49fb5;}' +
-    '@media(max-width:720px){.ctabs{grid-template-columns:repeat(2,1fr);}.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:29px;}}' +
-    '</style></head><body><div class="cwrap">' +
-      '<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>' +
-      '<div class="chero">' +
-        '<div class="eyebrow">' + safe(data.title) + '</div>' +
-        '<h1>What your child will <em>build</em>.</h1>' +
-        '<div class="stats">' + stats + '</div>' +
-      '</div>' +
-      '<div class="ctabs">' + tabs + '</div>' +
-      '<div class="cpanels">' + panels + '</div>' +
-      '<div class="coutcome"><h3>A mini engineering lab at home</h3><p>' + safe(data.outcome) + '</p></div>' +
-      '<div class="cfoot">Tap each module above to explore what your child builds and learns.</div>' +
-    '</div>' +
-    '<' + 'script>' +
-    "document.querySelectorAll('.ctab').forEach(function(t){t.addEventListener('click',function(){var i=t.dataset.i;" +
-    "document.querySelectorAll('.ctab').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});" +
-    "document.querySelectorAll('.cpanel').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});" +
-    "window.scrollTo({top:document.querySelector('.ctabs').offsetTop-20,behavior:'smooth'});});});" +
-    '</' + 'script></body></html>';
+function buildCurriculumHTML(course) {
+  var cd = CURRICULUM_DATA[course];
+  if (!cd) return '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:40px">No curriculum available yet.</body></html>';
+  var dataJson = JSON.stringify(cd);
+  var robotSrc = curriculumRobot.toString();
+  var bandKeys = Object.keys(cd);
+  var bandPills = bandKeys.map(function(k, i){ return '<button class="cbandbtn'+(i===0?' on':'')+'" data-b="'+k+'">'+cd[k].gradeLabel+'</button>'; }).join('');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BrightCHAMPS · What your child will build</title><style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}
+.cwrap{max-width:1060px;margin:0 auto;padding:44px 22px 66px;}
+.cbrand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px;}
+.cbrand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
+.cbrand .nm{font-size:18px;font-weight:700;}.cbrand .nm em{font-weight:400;font-style:normal;}
+.chero{text-align:center;margin-bottom:26px;}
+.chero .eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:800;color:#7453D7;margin-bottom:10px;}
+.chero h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;margin-bottom:16px;}
+.chero h1 em{font-style:normal;color:#7453D7;}
+.cbands{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.cbandbtn{font-size:13px;font-weight:700;padding:8px 16px;border-radius:22px;border:2px solid #ece9f6;background:#fff;color:#4a4460;cursor:pointer;transition:all .18s;}
+.cbandbtn:hover{border-color:#7453D7;color:#7453D7;}
+.cbandbtn.on{background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-color:transparent;}
+.chero .stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#6b6480;font-weight:600;}
+.chero .stats b{color:#241d3a;font-size:16px;}
+.ctabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:22px;}
+.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px 10px;border:2px solid #ece9f6;border-radius:16px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}
+.ctab:hover{border-color:var(--c);transform:translateY(-2px);}
+.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 8px 20px rgba(0,0,0,0.06);}
+.ctab-rob svg{width:46px;height:auto;display:block;}
+.ctab-lbl{text-align:center;font-size:11.5px;color:#4a4460;font-weight:600;line-height:1.2;}
+.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1px;}
+.cpanel{display:grid;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}
+.cpanel.anim{animation:cfade .35s ease;}
+@keyframes cfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}
+.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}
+@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.cp-eyebrow{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}
+.cpanel h2{font-size:29px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}
+.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}
+.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}
+.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.cp-chips span{font-size:13px;font-weight:600;padding:7px 13px;border-radius:20px;}
+.cp-chips.builds span{background:var(--cl);color:var(--c);}
+.cp-chips.skills span{background:#f3f1fa;color:#5a5470;}
+.cp-real{margin-top:20px;padding:14px 16px;border-left:3px solid var(--c);background:#faf9ff;border-radius:0 10px 10px 0;font-size:14px;color:#4a4460;line-height:1.55;}
+.coutcome{margin-top:30px;text-align:center;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-radius:24px;padding:34px 30px;}
+.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}
+.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:700px;margin:0 auto;}
+.cfoot{text-align:center;margin-top:24px;font-size:12px;color:#a49fb5;}
+@media(max-width:720px){.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:28px;}.ctabs{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}}
+</style></head><body><div class="cwrap">
+<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>
+<div class="chero"><div class="eyebrow" id="ceyebrow"></div><h1>What your child will <em>build</em>.</h1><div class="cbands">${bandPills}</div><div class="stats" id="cstats"></div></div>
+<div class="ctabs" id="ctabs"></div>
+<div class="cpanel" id="cpanel"></div>
+<div class="coutcome"><h3 id="coutcome-title"></h3><p id="coutcome-text"></p></div>
+<div class="cfoot">Tap a grade band, then tap each module to explore what your child builds.</div>
+</div>
+<script>
+var DATA=${dataJson};
+${robotSrc}
+var bands=Object.keys(DATA);
+var activeBand=bands[0];
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function panelHTML(m){
+  return '<div class="cpanel-rob">'+curriculumRobot(m.color,m.icon)+'</div>'
+    +'<div class="cpanel-body">'
+    +'<div class="cp-eyebrow">Module '+m.n+' \u00b7 '+esc(m.tag)+'</div>'
+    +'<h2>'+esc(m.name)+'</h2>'
+    +'<p class="cp-becomes">'+esc(m.becomes)+'</p>'
+    +'<div class="cp-sec">They will build</div><div class="cp-chips builds">'+m.builds.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>'
+    +'<div class="cp-sec">Skills they gain</div><div class="cp-chips skills">'+m.learns.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>'
+    +'<div class="cp-real">'+esc(m.real)+'</div></div>';
+}
+function showModule(i){
+  var m=DATA[activeBand].modules[i];
+  var tabs=document.querySelectorAll('.ctab');
+  for(var t=0;t<tabs.length;t++){tabs[t].classList.toggle('on',parseInt(tabs[t].getAttribute('data-i'))===i);}
+  var panel=document.getElementById('cpanel');
+  panel.style.setProperty('--c',m.color);panel.style.setProperty('--cl',m.light);
+  panel.innerHTML=panelHTML(m);
+  panel.classList.remove('anim');void panel.offsetWidth;panel.classList.add('anim');
+}
+function renderBand(){
+  var b=DATA[activeBand];
+  document.getElementById('ceyebrow').textContent=b.title;
+  document.getElementById('cstats').innerHTML=b.stats.map(function(s){return '<span><b>'+esc(s[0])+'</b> '+esc(s[1])+'</span>';}).join('');
+  document.getElementById('coutcome-title').textContent=b.outcomeTitle;
+  document.getElementById('coutcome-text').textContent=b.outcome;
+  document.getElementById('ctabs').innerHTML=b.modules.map(function(m,i){return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'"><span class="ctab-rob">'+curriculumRobot(m.color,m.icon)+'</span><span class="ctab-lbl"><b>Module '+m.n+'</b>'+esc(m.name)+'</span></button>';}).join('');
+  var tabs=document.querySelectorAll('.ctab');
+  for(var t=0;t<tabs.length;t++){(function(el){el.addEventListener('click',function(){showModule(parseInt(el.getAttribute('data-i')));});})(tabs[t]);}
+  showModule(0);
+}
+var bb=document.querySelectorAll('.cbandbtn');
+for(var q=0;q<bb.length;q++){(function(el){el.addEventListener('click',function(){activeBand=el.getAttribute('data-b');var all=document.querySelectorAll('.cbandbtn');for(var z=0;z<all.length;z++){all[z].classList.toggle('on',all[z].getAttribute('data-b')===activeBand);}renderBand();window.scrollTo({top:0,behavior:'smooth'});});})(bb[q]);}
+renderBand();
+<\/script></body></html>`;
 }
 
 function showCurriculum() {
-  const html = buildCurriculumHTML('robotics', 'g1-2');
+  const html = buildCurriculumHTML('robotics');
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
