@@ -2723,49 +2723,82 @@ const CURRICULUM_DATA = {
   }
 };
 
-CURRICULUM_DATA.math = {
-  'g1-12': {
-    gradeLabel: 'Grades 1-12', title: 'Mathematics · Grades 1 to 12', unit: 'Stage', buildsLabel: 'What they will master',
-    stats: [['12','grades'],['6','stages'],['SAT','prep built in']],
-    outcomeTitle: 'From counting to pre-calculus',
-    outcome: 'By Grade 12 your child has journeyed from counting all the way to pre-calculus, mastering arithmetic, algebra, geometry, trigonometry and statistics, and can apply math confidently to science, coding, finance and daily life, fully prepared for the SAT and a STEM future.',
-    modules: [
-      { n:1, name:'Number Explorer', tag:'Foundation · Grades 1-2', color:'#2563eb', light:'#e8f0fe', icon:'num',
-        becomes:'Your child builds rock-solid number sense, counting and calculating with confidence while learning the everyday math of time and money.',
-        builds:['Numbers to 1,000','Addition & Subtraction','Time & Money','Shapes & Measurement','Speed Math','Early Multiplication'],
-        learns:['Number sense','Mental math','Early geometry','Logical thinking'],
-        real:'Telling the time, counting change and sharing fairly, the math they use every single day.' },
-      { n:2, name:'The Operator', tag:'Core Arithmetic · Grades 3-4', color:'#0f9d6b', light:'#e4f6ee', icon:'ops',
-        becomes:'Your child becomes fluent with all four operations and starts working with fractions, decimals and real-world data.',
-        builds:['Multiplication & Division','Fractions','Decimals','Factors & Multiples','Data Handling','Numbers to a Million'],
-        learns:['Multi-digit arithmetic','Fractions & decimals','Data analysis','Problem solving'],
-        real:'Splitting a pizza into fractions, reading a chart, or measuring ingredients, math turns practical.' },
-      { n:3, name:'Pattern Finder', tag:'Pre-Algebra · Grades 5-6', color:'#d97706', light:'#fdf0dd', icon:'percent',
-        becomes:'Your child starts thinking in patterns and variables, mastering ratios, percentages and their first real algebra.',
-        builds:['Ratios & Percentages','Integers','Intro to Algebra','Coordinate Geometry','Exponents','Statistics'],
-        learns:['Percentages','Algebraic thinking','Coordinate geometry','Statistics'],
-        real:'Working out a 20% discount or plotting points on a graph, the bridge into real algebra.' },
-      { n:4, name:'Equation Solver', tag:'Algebra Foundations · Grades 7-8', color:'#7c3aed', light:'#f0e9fe', icon:'xvar',
-        becomes:'Your child solves real equations, works with functions and linear relationships, and meets the Pythagorean theorem.',
-        builds:['Equations & Expressions','Functions','Linear Relationships','Pythagorean Theorem','Systems of Equations','Volume & Surface Area'],
-        learns:['Equation solving','Functions','Geometric reasoning','Modeling'],
-        real:'The exact algebra and geometry that high school, physics and coding are all built on.' },
-      { n:5, name:'Function Master', tag:'High School Algebra · Grades 9-10', color:'#db2777', light:'#fce8f2', icon:'graph',
-        becomes:'Your child masters Algebra I and II, quadratics, polynomials and logarithms, and begins SAT preparation.',
-        builds:['Algebra I & II','Quadratic Functions','Polynomials','Logarithms','Complex Numbers','SAT Foundations'],
-        learns:['Algebra mastery','Graph interpretation','Advanced functions','SAT readiness'],
-        real:'The math that powers physics, economics and computer science, plus a real head start on the SAT.' },
-      { n:6, name:'Pre-Calculus Pro', tag:'Advanced Math · Grades 11-12', color:'#0891b2', light:'#e2f4f8', icon:'trig',
-        becomes:'Your child reaches university-ready mathematics with geometry, trigonometry, vectors, matrices and pre-calculus.',
-        builds:['Trigonometry','Vectors & Matrices','Pre-Calculus','Coordinate Geometry','Probability','SAT Preparation'],
-        learns:['Trigonometry','Vectors & matrices','Pre-calculus','University-ready thinking'],
-        real:'Everything needed for STEM degrees in engineering, data science and beyond, with strong SAT prep.' }
-    ]
-  }
-};
+const MATH_CURRICULUM = [
+  { n:1, title:'Building Foundations', stage:'Foundation', color:'#2563eb', light:'#e8f0fe', glyph:'+',
+    intro:'Your child falls in love with numbers, counting, adding and subtracting while learning time, money and shapes.',
+    topics:['Numbers to 120','Addition & Subtraction','Time','Money','Measurement','Shapes & Geometry'],
+    skills:['Number recognition','Counting fluency','Basic arithmetic','Early geometry'],
+    value:'The confident number sense every later grade is built on, plus everyday skills like telling time and handling money.' },
+  { n:2, title:'Expanding Number Sense', stage:'Foundation', color:'#2563eb', light:'#e8f0fe', glyph:'\u00d7',
+    intro:'Your child works with bigger numbers, meets multiplication and takes a first look at fractions.',
+    topics:['Numbers to 10,000','Intro to Multiplication','Multiplication & Division','Intro to Fractions','Place Value','Data & Measurement'],
+    skills:['Multiplication readiness','Larger numbers','Fraction basics','Data interpretation'],
+    value:'Sets up the times-tables and place-value fluency that make Grade 3 and 4 arithmetic feel easy.' },
+  { n:3, title:'Strengthening Operations', stage:'Core Arithmetic', color:'#0f9d6b', light:'#e4f6ee', glyph:'\u00f7',
+    intro:'Your child becomes confident with multi-digit multiplication, division and real fractions.',
+    topics:['Multiplication & Division','Fractions','Factors & Multiples','Numbers to a Million','Geometry','Money & Measurement'],
+    skills:['Multi-digit arithmetic','Fraction understanding','Pattern recognition','Large numbers'],
+    value:'Solid operations and fraction sense, the workhorses of everyday and school math.' },
+  { n:4, title:'Transition to Higher Math', stage:'Core Arithmetic', color:'#0f9d6b', light:'#e4f6ee', glyph:'\u00bd',
+    intro:'Your child masters decimals, deepens fractions and takes the first steps into algebraic thinking.',
+    topics:['Decimals','Advanced Fractions','Number Systems','Algebraic Thinking','Data Handling','Measurement'],
+    skills:['Decimal computation','Algebraic reasoning','Data analysis','Logical thinking'],
+    value:'Decimals and early algebra open the door to percentages, money math and problem solving.' },
+  { n:5, title:'Preparing for Algebra', stage:'Pre-Algebra', color:'#d97706', light:'#fdf0dd', glyph:'%',
+    intro:'Your child starts thinking in ratios and percentages and meets real algebra for the first time.',
+    topics:['Ratios & Percentages','Decimals & Exponents','Fraction Operations','Intro to Algebra','Integers','Coordinate Basics'],
+    skills:['Percentages','Ratios','Introductory algebra','Multi-step problem solving'],
+    value:'Percentages and ratios power discounts, data and everyday decisions, and real algebra begins here.' },
+  { n:6, title:'Entering Middle School Math', stage:'Pre-Algebra', color:'#d97706', light:'#fdf0dd', glyph:'x',
+    intro:'Your child works with integers, algebraic equations and coordinate geometry, thinking like a mathematician.',
+    topics:['Integers & Rational Numbers','Algebraic Equations','Ratios & Percentages','Coordinate Geometry','Exponents & Powers','Statistics'],
+    skills:['Integer operations','Algebra foundations','Coordinate geometry','Statistical thinking'],
+    value:'The pre-algebra backbone that makes high-school algebra and geometry feel natural.' },
+  { n:7, title:'Algebra & Geometry Foundations', stage:'Algebra Foundations', color:'#7c3aed', light:'#f0e9fe', glyph:'\u221a',
+    intro:'Your child solves equations, explores geometry and meets probability and the Pythagorean theorem.',
+    topics:['Expressions & Equations','Exponents & Powers','Ratios & Proportions','Pythagorean Theorem','Angles & Triangles','Probability & Statistics'],
+    skills:['Equation solving','Geometric reasoning','Probability','Real-world applications'],
+    value:'Real algebra and geometry, the exact skills tested in school exams and early competitive math.' },
+  { n:8, title:'Advanced Algebra Foundations', stage:'Algebra Foundations', color:'#7c3aed', light:'#f0e9fe', glyph:'\u0192',
+    intro:'Your child works with functions, linear systems and 3D geometry, building true mathematical modeling skills.',
+    topics:['Linear Relationships','Systems of Equations','Functions','Roots & Real Numbers','Surface Area & Volume','Data Analysis'],
+    skills:['Linear algebra','Function concepts','3D geometry','Mathematical modeling'],
+    value:'Functions and linear systems are the gateway to Algebra I, physics and coding.' },
+  { n:9, title:'Algebra I', stage:'High School Algebra', color:'#db2777', light:'#fce8f2', glyph:'\u00b2',
+    intro:'Your child masters linear and quadratic functions, polynomials and factoring, and begins SAT foundations.',
+    topics:['Linear Equations & Functions','Systems & Inequalities','Polynomials & Factoring','Quadratic Functions','Exponential Functions','SAT Foundations'],
+    skills:['Algebra mastery','Graph interpretation','Polynomial operations','Quadratic reasoning'],
+    value:'Algebra I is the single most important gateway to STEM, and SAT prep starts right here.' },
+  { n:10, title:'Algebra II', stage:'High School Algebra', color:'#db2777', light:'#fce8f2', glyph:'e',
+    intro:'Your child takes on higher-order functions, logarithms and complex numbers, and builds toward the SAT.',
+    topics:['Function Transformations','Polynomial & Rational Functions','Exponential & Logarithmic','Complex Numbers','Sequences & Series','SAT Preparation'],
+    skills:['Advanced algebra','Higher-order functions','Logarithms','Complex numbers'],
+    value:'The advanced algebra that college STEM programs assume, with serious SAT momentum.' },
+  { n:11, title:'Geometry & Trigonometry', stage:'Advanced Math', color:'#0891b2', light:'#e2f4f8', glyph:'\u25b3',
+    intro:'Your child masters proofs, trigonometry and 3D geometry, and sharpens spatial reasoning for the SAT.',
+    topics:['Reasoning & Proof','Congruence & Similarity','Right-Triangle Trigonometry','Circles & Polygons','Volume & 3D Geometry','SAT Preparation'],
+    skills:['Proof writing','Trigonometry','Spatial reasoning','Geometric modeling'],
+    value:'Trigonometry and proof-based reasoning, essential for engineering, architecture and top SAT scores.' },
+  { n:12, title:'Pre-Calculus & Advanced Math', stage:'Advanced Math', color:'#0891b2', light:'#e2f4f8', glyph:'\u03c0',
+    intro:'Your child reaches university-ready math with trigonometry, vectors, matrices and pre-calculus.',
+    topics:['Advanced Functions','Trigonometric Identities','Vectors','Matrices & Systems','Probability & Combinatorics','SAT Preparation'],
+    skills:['Pre-calculus','Advanced trigonometry','Vectors & matrices','University-level thinking'],
+    value:'Everything a STEM degree assumes on day one, engineering, CS and data science, with a strong SAT finish.' }
+];
+
+function mathEmblem(n, color, glyph) {
+  var fs = (n < 10) ? 58 : 46;
+  return '<svg class="memblem" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect x="6" y="6" width="108" height="108" rx="26" fill="' + color + '"/>' +
+    '<rect x="6" y="6" width="108" height="52" rx="26" fill="#ffffff" opacity="0.10"/>' +
+    '<g stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.4"><path d="M6 43h108M6 77h108M43 6v108M77 6v108"/></g>' +
+    '<text x="60" y="' + (n < 10 ? 80 : 78) + '" font-family="Georgia,serif" font-size="' + fs + '" font-weight="700" fill="#ffffff" text-anchor="middle">' + n + '</text>' +
+    '<circle cx="95" cy="27" r="15" fill="#ffffff"/>' +
+    '<text x="95" y="32.5" font-family="Georgia,serif" font-size="16" font-weight="700" fill="' + color + '" text-anchor="middle">' + glyph + '</text>' +
+  '</svg>';
+}
 
 const COURSE_LABELS = { robotics: 'Robotics', math: 'Mathematics' };
-
 function curriculumRobot(color, type) {
   var C = color;
   var icons = {
@@ -2810,53 +2843,43 @@ function curriculumRobot(color, type) {
 
 function buildCurriculumHTML() {
   var safe = function(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-  var courses = Object.keys(CURRICULUM_DATA);
+  var courses = ['robotics','math'];
   var subjPills = courses.map(function(c, ci){
-    return '<button class="csubjbtn'+(ci===0?' on':'')+'" data-c="'+c+'">'+safe(COURSE_LABELS[c]||c)+'</button>';
+    return '<button class="csubjbtn'+(ci===0?' on':'')+'" data-c="'+c+'">'+safe(COURSE_LABELS[c])+'</button>';
   }).join('');
-  var subjects = courses.map(function(c, ci){
-    var bands = CURRICULUM_DATA[c];
-    var keys = Object.keys(bands);
-    var bandPills = keys.length > 1 ? ('<div class="cbandbar">' + keys.map(function(k, bi){
-      return '<button class="cbandbtn'+(bi===0?' on':'')+'" data-b="'+k+'">'+safe(bands[k].gradeLabel)+'</button>';
-    }).join('') + '</div>') : '';
-    var bandSecs = keys.map(function(k, bi){
-      var data = bands[k];
-      var unit = data.unit || 'Module';
-      var buildsLabel = data.buildsLabel || 'They will build';
-      var tabs = data.modules.map(function(m, i){
-        return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'">'+
-          '<span class="ctab-rob">'+curriculumRobot(m.color, m.icon)+'</span>'+
-          '<span class="ctab-lbl"><b>'+unit+' '+m.n+'</b>'+safe(m.name)+'</span></button>';
-      }).join('');
-      var panels = data.modules.map(function(m, i){
-        return '<div class="cpanel'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'">'+
-          '<div class="cpanel-rob">'+curriculumRobot(m.color, m.icon)+'</div>'+
-          '<div class="cpanel-body">'+
-            '<div class="cp-eyebrow">'+unit+' '+m.n+' · '+safe(m.tag)+'</div>'+
-            '<h2>'+safe(m.name)+'</h2>'+
-            '<p class="cp-becomes">'+safe(m.becomes)+'</p>'+
-            '<div class="cp-sec">'+safe(buildsLabel)+'</div>'+
-            '<div class="cp-chips builds">'+m.builds.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div>'+
-            '<div class="cp-sec">Skills they gain</div>'+
-            '<div class="cp-chips skills">'+m.learns.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div>'+
-            '<div class="cp-real">'+safe(m.real)+'</div>'+
-          '</div></div>';
-      }).join('');
-      var stats = data.stats.map(function(x){ return '<span><b>'+safe(x[0])+'</b> '+safe(x[1])+'</span>'; }).join('');
-      return '<div class="cband" data-b="'+k+'" style="display:'+(bi===0?'block':'none')+'">'+
-        '<div class="cband-stats">'+stats+'</div>'+
-        '<div class="ctabs">'+tabs+'</div>'+
-        '<div class="cpanels">'+panels+'</div>'+
-        '<div class="coutcome"><h3>'+safe(data.outcomeTitle||'A complete journey')+'</h3><p>'+safe(data.outcome)+'</p></div>'+
-      '</div>';
+
+  // Robotics (robot mascots, grade bands)
+  var bands = CURRICULUM_DATA.robotics;
+  var rkeys = Object.keys(bands);
+  var rbandPills = '<div class="cbandbar">' + rkeys.map(function(k, bi){
+    return '<button class="cbandbtn'+(bi===0?' on':'')+'" data-b="'+k+'">'+safe(bands[k].gradeLabel)+'</button>';
+  }).join('') + '</div>';
+  var rbands = rkeys.map(function(k, bi){
+    var data = bands[k]; var unit = data.unit || 'Module'; var bl = data.buildsLabel || 'They will build';
+    var tabs = data.modules.map(function(m, i){
+      return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'"><span class="ctab-rob">'+curriculumRobot(m.color,m.icon)+'</span><span class="ctab-lbl"><b>'+unit+' '+m.n+'</b>'+safe(m.name)+'</span></button>';
     }).join('');
-    return '<div class="csubject" data-c="'+c+'" style="display:'+(ci===0?'block':'none')+'">'+bandPills+bandSecs+'</div>';
+    var panels = data.modules.map(function(m, i){
+      return '<div class="cpanel'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'"><div class="cpanel-rob">'+curriculumRobot(m.color,m.icon)+'</div><div class="cpanel-body"><div class="cp-eyebrow">'+unit+' '+m.n+' \u00b7 '+safe(m.tag)+'</div><h2>'+safe(m.name)+'</h2><p class="cp-becomes">'+safe(m.becomes)+'</p><div class="cp-sec">'+safe(bl)+'</div><div class="cp-chips builds">'+m.builds.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div><div class="cp-sec">Skills they gain</div><div class="cp-chips skills">'+m.learns.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div><div class="cp-real">'+safe(m.real)+'</div></div></div>';
+    }).join('');
+    var stats = data.stats.map(function(x){ return '<span><b>'+safe(x[0])+'</b> '+safe(x[1])+'</span>'; }).join('');
+    return '<div class="cband" data-b="'+k+'" style="display:'+(bi===0?'block':'none')+'"><div class="cband-stats">'+stats+'</div><div class="ctabs">'+tabs+'</div><div class="cpanels">'+panels+'</div><div class="coutcome"><h3>'+safe(data.outcomeTitle||'A complete journey')+'</h3><p>'+safe(data.outcome)+'</p></div></div>';
   }).join('');
+  var roboticsSubject = '<div class="csubject" data-c="robotics" style="display:block">'+rbandPills+rbands+'</div>';
+
+  // Mathematics (grade-by-grade, math emblems)
+  var mtabs = MATH_CURRICULUM.map(function(g, i){
+    return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+g.color+';--cl:'+g.light+'"><span class="ctab-emblem">'+mathEmblem(g.n,g.color,g.glyph)+'</span><span class="ctab-lbl"><b>Grade '+g.n+'</b>'+safe(g.stage)+'</span></button>';
+  }).join('');
+  var mpanels = MATH_CURRICULUM.map(function(g, i){
+    return '<div class="cpanel'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+g.color+';--cl:'+g.light+'"><div class="cpanel-emblem">'+mathEmblem(g.n,g.color,g.glyph)+'</div><div class="cpanel-body"><div class="cp-eyebrow">Grade '+g.n+' \u00b7 '+safe(g.stage)+'</div><h2>'+safe(g.title)+'</h2><p class="cp-becomes">'+safe(g.intro)+'</p><div class="cp-sec">What they cover</div><div class="cp-chips builds">'+g.topics.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div><div class="cp-sec">Skills they gain</div><div class="cp-chips skills">'+g.skills.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div><div class="cp-real">'+safe(g.value)+'</div></div></div>';
+  }).join('');
+  var mstats = '<div class="cband-stats"><span><b>12</b> grades</span><span><b>6</b> stages</span><span><b>SAT</b> prep built in</span></div>';
+  var mathSubject = '<div class="csubject" data-c="math" style="display:none"><div class="cband" data-b="all" style="display:block">'+mstats+'<div class="ctabs cgrades">'+mtabs+'</div><div class="cpanels">'+mpanels+'</div><div class="coutcome"><h3>From counting to pre-calculus</h3><p>By Grade 12 your child has journeyed from counting all the way to pre-calculus, mastering arithmetic, algebra, geometry, trigonometry and statistics, ready for the SAT and a STEM future.</p></div></div></div>';
 
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'+
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">'+
-    '<title>BrightCHAMPS · What your child will build</title><style>'+
+    '<title>BrightCHAMPS \u00b7 What your child will build</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box;}'+
     "body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;"+
       'background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}'+
@@ -2879,10 +2902,12 @@ function buildCurriculumHTML() {
     '.cband-stats{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:14px;color:#6b6480;font-weight:600;margin-bottom:22px;}'+
     '.cband-stats b{color:#241d3a;font-size:16px;}'+
     '.ctabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:22px;}'+
-    '.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px 10px;border:2px solid #ece9f6;border-radius:16px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}'+
+    '.ctabs.cgrades{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));}'+
+    '.ctab{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 8px 10px;border:2px solid #ece9f6;border-radius:16px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}'+
     '.ctab:hover{border-color:var(--c);transform:translateY(-2px);}'+
     '.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 8px 20px rgba(0,0,0,0.06);}'+
     '.ctab-rob svg{width:46px;height:auto;display:block;}'+
+    '.ctab-emblem svg{width:42px;height:auto;display:block;border-radius:10px;}'+
     '.ctab-lbl{text-align:center;font-size:11.5px;color:#4a4460;font-weight:600;line-height:1.2;}'+
     '.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1px;}'+
     '.cpanel{display:none;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}'+
@@ -2891,8 +2916,10 @@ function buildCurriculumHTML() {
     '.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}'+
     '.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}'+
     '@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}'+
+    '.cpanel-emblem{display:flex;justify-content:center;padding-top:4px;}'+
+    '.cpanel-emblem svg{width:150px;height:auto;filter:drop-shadow(0 12px 24px rgba(36,29,58,0.18));}'+
     '.cp-eyebrow{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}'+
-    '.cpanel h2{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}'+
+    '.cpanel h2{font-size:29px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}'+
     '.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}'+
     '.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}'+
     '.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}'+
@@ -2904,13 +2931,13 @@ function buildCurriculumHTML() {
     '.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}'+
     '.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:700px;margin:0 auto;}'+
     '.cfoot{text-align:center;margin-top:26px;font-size:12px;color:#a49fb5;}'+
-    '@media(max-width:720px){.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:28px;}}'+
+    '@media(max-width:720px){.cpanel{grid-template-columns:1fr;}.cpanel-rob svg,.cpanel-emblem svg{width:120px;}.chero h1{font-size:28px;}}'+
     '</style></head><body><div class="cwrap">'+
       '<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>'+
-      '<div class="chero"><div class="eyebrow">Course Curriculum</div><h1>What your child will <em>build</em>.</h1></div>'+
+      '<div class="chero"><div class="eyebrow">Course Curriculum</div><h1>What your child will <em>learn</em>.</h1></div>'+
       '<div class="csubjbar">'+subjPills+'</div>'+
-      subjects+
-      '<div class="cfoot">Pick a subject and grade band, then tap each card to explore what your child learns.</div>'+
+      roboticsSubject + mathSubject +
+      '<div class="cfoot">Pick a subject, then tap each card to see exactly what your child learns.</div>'+
     '</div>'+
     '<' + 'script>'+
     "document.querySelectorAll('.csubjbtn').forEach(function(p){p.addEventListener('click',function(){var c=p.dataset.c;"+
