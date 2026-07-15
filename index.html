@@ -977,6 +977,13 @@
   .pp2-sessions { font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#b6a3e6; }
   .pp2-save { font-size:10px; font-weight:700; color:#3fae6a; background:rgba(52,199,89,0.14); padding:3px 8px; border-radius:20px; white-space:nowrap; }
   .pp2-pricewrap { position:relative; }
+  .pp2-money { position:relative; margin-top:12px; min-height:104px; }
+  .pp2-reveal { filter:blur(8px); opacity:0.4; transition:filter .4s ease, opacity .4s ease; }
+  .pp2-card.selected .pp2-reveal { filter:none; opacity:1; }
+  .pp2-lock { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:7px;
+    font-size:10px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#c9a86a; z-index:2; transition:opacity .3s; }
+  .pp2-card.selected .pp2-lock { opacity:0; pointer-events:none; }
+  .pp2-lockdot { width:6px; height:6px; border-radius:50%; background:#c9a86a; box-shadow:0 0 0 4px rgba(201,168,106,0.18); }
   .pp2-orig { font-size:14px; color:var(--text-faint); text-decoration:line-through; opacity:0; height:0; overflow:hidden; transition:opacity .25s; }
   .pp2-orig.show { opacity:1; height:auto; margin-bottom:2px; }
   .pp2-price { font-family:Georgia,'Times New Roman',serif; font-size:32px; font-weight:600; letter-spacing:-0.02em; line-height:1; color:var(--text); }
@@ -1266,7 +1273,6 @@
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px;">
         <button type="button" class="btn btn-ghost" id="pricing-cancel">Close</button>
-        <button type="button" class="btn btn-primary" id="pricing-share-link">Show to Parent (Full Screen)</button>
       </div>
     </div>
   </div>
@@ -2440,14 +2446,19 @@ function renderPricingCard(plan, meta) {
   return '<div class="pp2-card' + (isSel ? ' selected' : '') +
       '" data-classes="' + plan.classes + '" data-price="' + full + '" data-months="' + meta.months + '">' +
     '<div class="pp2-top"><span class="pp2-sessions">' + plan.classes + ' sessions</span>' + saveVs + '</div>' +
-    '<div class="pp2-pricewrap">' +
-      '<div class="pp2-orig' + (disc > 0 ? ' show' : '') + '">' + (disc > 0 ? ppMoney(full) : '') + '</div>' +
-      '<div class="pp2-price">' + ppMoney(shown) + '</div>' +
-      '<span class="pp2-savebadge' + (disc > 0 ? ' shown' : '') + '">' + (disc > 0 ? ('You save ' + ppMoney(save) + '  ·  ' + disc + '% off') : '') + '</span>' +
-    '</div>' +
-    '<div class="pp2-per">' + ppMoney(perShown) + ' <span>per class</span></div>' +
     dur + kit +
-    '<div class="pp2-inst"><span>' + ppMoney(monthlyShown) + '</span> / mo for ' + meta.months + ' months</div>' +
+    '<div class="pp2-money">' +
+      '<div class="pp2-lock"><span class="pp2-lockdot"></span> Tap to reveal price</div>' +
+      '<div class="pp2-reveal">' +
+        '<div class="pp2-pricewrap">' +
+          '<div class="pp2-orig' + (disc > 0 ? ' show' : '') + '">' + (disc > 0 ? ppMoney(full) : '') + '</div>' +
+          '<div class="pp2-price">' + ppMoney(shown) + '</div>' +
+          '<span class="pp2-savebadge' + (disc > 0 ? ' shown' : '') + '">' + (disc > 0 ? ('You save ' + ppMoney(save) + '  ·  ' + disc + '% off') : '') + '</span>' +
+        '</div>' +
+        '<div class="pp2-per">' + ppMoney(perShown) + ' <span>per class</span></div>' +
+        '<div class="pp2-inst"><span>' + ppMoney(monthlyShown) + '</span> / mo for ' + meta.months + ' months</div>' +
+      '</div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -4407,7 +4418,6 @@ function bindUI() {
   document.getElementById('curriculum-btn').addEventListener('click', showCurriculum);
   document.getElementById('pricing-close').addEventListener('click', closePricingModal);
   document.getElementById('pricing-cancel').addEventListener('click', closePricingModal);
-  document.getElementById('pricing-share-link').addEventListener('click', showParentPricing);
   document.getElementById('pricing-save-snapshot').addEventListener('click', saveCurrentPricingSnapshot);
   // Pricing: debounce text inputs, instant for dropdowns
   let pricingDebounceTimer;
