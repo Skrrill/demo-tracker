@@ -2462,45 +2462,43 @@ function closePricingModal() {
 }
 
 function buildParentPricingHTML() {
-  const plans = getVisiblePlans();
-  const meta = getPricingMeta();
-  const safe = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const money = n => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: (n % 1) ? 2 : 0 });
+  var plans = getVisiblePlans();
+  var meta = getPricingMeta();
+  var safe = function(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var money = function(n){ return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: (n % 1) ? 2 : 0 }); };
+  var selIdx = -1;
+  plans.forEach(function(p, i){ if (p.classes === ppSel) selIdx = i; });
 
-  const cards = plans.map(p => {
-    const disc = (p.classes === ppSel) ? ppDisc : 0;
-    const full = p.price;
-    const shown = disc > 0 ? Math.round(full * (1 - disc / 100)) : full;
-    const save = full - shown;
-    const per = Math.round(shown / p.classes);
-    const mo = shown / meta.months;
-    const sel = (p.classes === ppSel) ? ' sel' : '';
-    const orig = disc > 0 ? '<div class="orig">' + money(full) + '</div>' : '';
-    const badge = disc > 0 ? '<div class="savebig">You save ' + money(save) + '  ·  ' + disc + '% off</div>' : '';
-    const saveVs = (p.savePct > 0 && disc === 0) ? '<span class="save">Save ' + p.savePct + '%</span>' : '';
-    const kit = p.kitLabel ? '<div class="kit">Includes <strong>' + p.kitLabel + '</strong> robotics kit' + (p.kitLabel === '1' ? '' : 's') + '</div>' : '';
-    const dur = p.duration ? '<div class="dur">About ' + p.duration.display + ' at ' + meta.perWeek + '/week</div>' : '';
-    return '<div class="card' + sel + '">' +
-      '<div class="ct"><span class="sess">' + p.classes + ' sessions</span>' + saveVs + '</div>' +
-      orig + '<div class="price">' + money(shown) + '</div>' + badge +
-      '<div class="per">' + money(per) + ' <span>per class</span></div>' +
+  var cards = plans.map(function(p, i){
+    var disc = (p.classes === ppSel) ? ppDisc : 0;
+    var full = p.price;
+    var shown = disc > 0 ? Math.round(full * (1 - disc / 100)) : full;
+    var save = full - shown;
+    var per = Math.round(shown / p.classes);
+    var mo = shown / meta.months;
+    var orig = disc > 0 ? '<div class="orig">' + money(full) + '</div>' : '';
+    var badge = disc > 0 ? '<div class="savebig">You save ' + money(save) + '  ·  ' + disc + '% off</div>' : '';
+    var kit = p.kitLabel ? '<div class="kit">Includes <strong>' + p.kitLabel + '</strong> robotics kit' + (p.kitLabel === '1' ? '' : 's') + '</div>' : '';
+    var dur = p.duration ? '<div class="dur">About ' + p.duration.display + ' at ' + meta.perWeek + '/week</div>' : '';
+    return '<div class="card' + (i === selIdx ? ' revealed' : '') + '" data-i="' + i + '">' +
+      '<div class="ct"><span class="sess">' + p.classes + ' sessions</span></div>' +
       dur + kit +
-      '<div class="inst"><span>' + money(mo) + '</span> / mo for ' + meta.months + ' months</div>' +
+      '<div class="pricebox">' +
+        '<div class="lockrow"><span class="lockdot"></span> Tap to reveal price</div>' +
+        '<div class="pricereveal">' +
+          orig + '<div class="price">' + money(shown) + '</div>' + badge +
+          '<div class="per">' + money(per) + ' <span>per class</span></div>' +
+          '<div class="inst"><span>' + money(mo) + '</span> / mo for ' + meta.months + ' months</div>' +
+        '</div>' +
+      '</div>' +
     '</div>';
   }).join('');
 
-  const flex = meta.format === 'oto' ? ' · flexible 1 to 5 sessions a week' : ' · 1 or 2 sessions a week';
-
-  const pay = '<div class="pms">' +
-    '<span class="pm visa">VISA</span>' +
-    '<span class="pm mc"><i></i><i></i></span>' +
-    '<span class="pm">AMEX</span>' +
-    '<span class="pm">PayPal</span>' +
-    '<span class="pm">Klarna</span>' +
-    '<span class="pm">Afterpay</span>' +
-    '<span class="pm">Apple Pay</span>' +
-    '<span class="pm">Google Pay</span>' +
-  '</div>';
+  var flex = meta.format === 'oto' ? ' · flexible 1 to 5 sessions a week' : ' · 1 or 2 sessions a week';
+  var pay = '<div class="pms">' +
+    '<span class="pm visa">VISA</span><span class="pm mc"><i></i><i></i></span>' +
+    '<span class="pm">AMEX</span><span class="pm">PayPal</span><span class="pm">Klarna</span>' +
+    '<span class="pm">Afterpay</span><span class="pm">Apple Pay</span><span class="pm">Google Pay</span></div>';
 
   return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
@@ -2511,57 +2509,60 @@ function buildParentPricingHTML() {
     '.wrap{max-width:1120px;margin:0 auto;padding:56px 24px 72px;}' +
     '.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:40px;}' +
     '.brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}' +
-    '.brand .nm{font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#e9e6f0;}' +
-    '.brand .nm em{font-style:normal;font-weight:400;}' +
-    '.hero{text-align:center;margin-bottom:44px;}' +
+    '.brand .nm{font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#e9e6f0;}.brand .nm em{font-style:normal;font-weight:400;}' +
+    '.hero{text-align:center;margin-bottom:20px;}' +
     '.eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#d4af6a;margin-bottom:14px;}' +
     'h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;margin-bottom:14px;color:#f3f0e8;}' +
     'h1 em{font-style:italic;color:#b6a3e6;}' +
     '.sub{font-size:16px;color:#9a95ab;}' +
-    '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:40px;}' +
-    '.card{position:relative;background:#1e1d28;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:30px 26px 24px;}' +
-    '.card.best{border-color:#c9a86a;box-shadow:0 12px 34px rgba(201,168,106,0.2);}' +
-    '.card.sel{border-color:#d4af6a;box-shadow:0 0 0 1px #d4af6a,0 14px 38px rgba(212,175,106,0.28);background:linear-gradient(160deg,rgba(212,175,106,0.12),transparent 55%),#1e1d28;}' +
-    '.seal{position:absolute;top:-11px;right:20px;background:linear-gradient(135deg,#f4d58a,#c9a86a);color:#4a3714;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:5px 12px;border-radius:20px;}' +
-    '.ct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;}' +
+    '.revealhint{text-align:center;font-size:12px;letter-spacing:0.05em;color:#8b8698;margin:26px 0 20px;}' +
+    '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;}' +
+    '.card{position:relative;background:#1e1d28;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 26px 24px;cursor:pointer;transition:border-color .25s,box-shadow .25s,transform .18s;}' +
+    '.card:hover{transform:translateY(-2px);border-color:rgba(212,175,106,0.45);}' +
+    '.card.revealed{border-color:#d4af6a;box-shadow:0 0 0 1px #d4af6a,0 14px 38px rgba(212,175,106,0.22);}' +
+    '.ct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;}' +
     '.sess{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#b6a3e6;}' +
-    '.save{font-size:10px;font-weight:700;color:#66d99a;background:rgba(52,199,89,0.14);padding:3px 9px;border-radius:20px;white-space:nowrap;}' +
+    '.dur{font-size:13px;color:#8b8698;margin-bottom:6px;}' +
+    '.kit{font-size:13px;color:#cfcbd9;margin-bottom:2px;}.kit strong{color:#d4af6a;}' +
+    '.pricebox{position:relative;margin-top:16px;min-height:120px;}' +
+    '.pricereveal{filter:blur(9px);opacity:0.35;transition:filter .5s ease,opacity .5s ease;pointer-events:none;}' +
+    '.card.revealed .pricereveal{filter:none;opacity:1;}' +
+    '.lockrow{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#d4af6a;z-index:2;transition:opacity .3s;}' +
+    '.card.revealed .lockrow{opacity:0;}' +
+    '.lockdot{width:7px;height:7px;border-radius:50%;background:#d4af6a;box-shadow:0 0 0 4px rgba(212,175,106,0.2);}' +
     '.orig{font-size:16px;color:#7d7890;text-decoration:line-through;margin-bottom:2px;}' +
-    '.price{font-family:Georgia,"Times New Roman",serif;font-size:52px;font-weight:600;line-height:1;letter-spacing:-0.02em;color:#f3f0e8;}' +
+    '.price{font-family:Georgia,"Times New Roman",serif;font-size:50px;font-weight:600;line-height:1;letter-spacing:-0.02em;color:#f3f0e8;}' +
     '.savebig{display:inline-block;margin-top:10px;font-size:12px;font-weight:800;color:#4a3714;background:linear-gradient(135deg,#f4d58a,#c9a86a);padding:5px 12px;border-radius:20px;}' +
-    '.per{font-size:14px;color:#9a95ab;margin-top:10px;}' +
-    '.per span{color:#6f6a80;}' +
-    '.dur{font-size:13px;color:#8b8698;margin-top:14px;}' +
-    '.kit{font-size:13px;color:#cfcbd9;margin-top:8px;}' +
-    '.kit strong{color:#d4af6a;}' +
-    '.inst{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;color:#8b8698;}' +
+    '.per{font-size:14px;color:#9a95ab;margin-top:10px;}.per span{color:#6f6a80;}' +
+    '.inst{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;color:#8b8698;}' +
     '.inst span{font-family:Georgia,serif;font-weight:600;color:#f3f0e8;font-size:18px;}' +
-    '.payline{margin-top:44px;text-align:center;}' +
-    '.payline .lead{font-size:13px;color:#9a95ab;margin-bottom:16px;}' +
+    '.payline{margin-top:44px;text-align:center;}.payline .lead{font-size:13px;color:#9a95ab;margin-bottom:16px;}' +
     '.pms{display:inline-flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;opacity:0.78;}' +
     '.pm{font-size:13px;font-weight:800;color:#b9b6c4;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.02em;}' +
-    '.pm.visa{font-style:italic;}' +
-    '.pm.mc{display:inline-flex;gap:0;}' +
-    '.pm.mc i{width:15px;height:15px;border-radius:50%;display:block;background:#8f8b9c;}' +
-    '.pm.mc i:last-child{background:#c3bfce;margin-left:-7px;}' +
+    '.pm.visa{font-style:italic;}.pm.mc{display:inline-flex;gap:0;}' +
+    '.pm.mc i{width:15px;height:15px;border-radius:50%;display:block;background:#8f8b9c;}.pm.mc i:last-child{background:#c3bfce;margin-left:-7px;}' +
     '.trust{margin-top:44px;padding-top:26px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;}' +
     '.trust .row{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;}' +
     '.trust .item{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#8b8698;}' +
     '.trust p{font-size:12px;color:#6f6a80;margin-top:18px;}' +
-    '@media(max-width:640px){h1{font-size:34px;}.price{font-size:42px;}.wrap{padding:36px 16px;}}' +
+    '@media(max-width:640px){h1{font-size:34px;}.price{font-size:40px;}.wrap{padding:36px 16px;}}' +
     '</style></head><body><div class="wrap">' +
       '<div class="brand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>' +
-      '<div class="hero">' +
-        '<div class="eyebrow">' + safe(meta.levelLabel) + ' &middot; ' + safe(meta.gradeRange) + '</div>' +
+      '<div class="hero"><div class="eyebrow">' + safe(meta.courseLabel) + ' &middot; ' + safe(meta.gradeRange) + '</div>' +
         '<h1>Your <em>' + safe(meta.courseLabel) + '</em> plan,<br>mapped out.</h1>' +
-        '<div class="sub">' + safe(meta.formatLabel) + ' classes' + flex + '</div>' +
-      '</div>' +
+        '<div class="sub">' + safe(meta.formatLabel) + ' classes' + flex + '</div></div>' +
+      '<div class="revealhint">Tap a plan to reveal its price</div>' +
       '<div class="grid">' + cards + '</div>' +
       '<div class="payline"><div class="lead">Split it into easy monthly instalments. Pay however suits you.</div>' + pay + '</div>' +
       '<div class="trust"><div class="row">' +
         '<div class="item">STEM Accredited</div><div class="item">Harvard Business Impact</div><div class="item">Google &middot; Roblox Advisors</div>' +
       '</div><p>All prices in USD.' + (meta.hasKits ? ' Robotics kits ship to your door.' : '') + '</p></div>' +
-    '</div></body></html>';
+    '</div>' +
+    '<' + 'script>' +
+    "document.querySelectorAll('.card').forEach(function(c){c.addEventListener('click',function(){" +
+    "document.querySelectorAll('.card').forEach(function(x){x.classList.remove('revealed');});" +
+    "c.classList.add('revealed');});});" +
+    '</' + 'script></body></html>';
 }
 
 function showParentPricing() {
@@ -2722,6 +2723,49 @@ const CURRICULUM_DATA = {
   }
 };
 
+CURRICULUM_DATA.math = {
+  'g1-12': {
+    gradeLabel: 'Grades 1-12', title: 'Mathematics · Grades 1 to 12', unit: 'Stage', buildsLabel: 'What they will master',
+    stats: [['12','grades'],['6','stages'],['SAT','prep built in']],
+    outcomeTitle: 'From counting to pre-calculus',
+    outcome: 'By Grade 12 your child has journeyed from counting all the way to pre-calculus, mastering arithmetic, algebra, geometry, trigonometry and statistics, and can apply math confidently to science, coding, finance and daily life, fully prepared for the SAT and a STEM future.',
+    modules: [
+      { n:1, name:'Number Explorer', tag:'Foundation · Grades 1-2', color:'#2563eb', light:'#e8f0fe', icon:'num',
+        becomes:'Your child builds rock-solid number sense, counting and calculating with confidence while learning the everyday math of time and money.',
+        builds:['Numbers to 1,000','Addition & Subtraction','Time & Money','Shapes & Measurement','Speed Math','Early Multiplication'],
+        learns:['Number sense','Mental math','Early geometry','Logical thinking'],
+        real:'Telling the time, counting change and sharing fairly, the math they use every single day.' },
+      { n:2, name:'The Operator', tag:'Core Arithmetic · Grades 3-4', color:'#0f9d6b', light:'#e4f6ee', icon:'ops',
+        becomes:'Your child becomes fluent with all four operations and starts working with fractions, decimals and real-world data.',
+        builds:['Multiplication & Division','Fractions','Decimals','Factors & Multiples','Data Handling','Numbers to a Million'],
+        learns:['Multi-digit arithmetic','Fractions & decimals','Data analysis','Problem solving'],
+        real:'Splitting a pizza into fractions, reading a chart, or measuring ingredients, math turns practical.' },
+      { n:3, name:'Pattern Finder', tag:'Pre-Algebra · Grades 5-6', color:'#d97706', light:'#fdf0dd', icon:'percent',
+        becomes:'Your child starts thinking in patterns and variables, mastering ratios, percentages and their first real algebra.',
+        builds:['Ratios & Percentages','Integers','Intro to Algebra','Coordinate Geometry','Exponents','Statistics'],
+        learns:['Percentages','Algebraic thinking','Coordinate geometry','Statistics'],
+        real:'Working out a 20% discount or plotting points on a graph, the bridge into real algebra.' },
+      { n:4, name:'Equation Solver', tag:'Algebra Foundations · Grades 7-8', color:'#7c3aed', light:'#f0e9fe', icon:'xvar',
+        becomes:'Your child solves real equations, works with functions and linear relationships, and meets the Pythagorean theorem.',
+        builds:['Equations & Expressions','Functions','Linear Relationships','Pythagorean Theorem','Systems of Equations','Volume & Surface Area'],
+        learns:['Equation solving','Functions','Geometric reasoning','Modeling'],
+        real:'The exact algebra and geometry that high school, physics and coding are all built on.' },
+      { n:5, name:'Function Master', tag:'High School Algebra · Grades 9-10', color:'#db2777', light:'#fce8f2', icon:'graph',
+        becomes:'Your child masters Algebra I and II, quadratics, polynomials and logarithms, and begins SAT preparation.',
+        builds:['Algebra I & II','Quadratic Functions','Polynomials','Logarithms','Complex Numbers','SAT Foundations'],
+        learns:['Algebra mastery','Graph interpretation','Advanced functions','SAT readiness'],
+        real:'The math that powers physics, economics and computer science, plus a real head start on the SAT.' },
+      { n:6, name:'Pre-Calculus Pro', tag:'Advanced Math · Grades 11-12', color:'#0891b2', light:'#e2f4f8', icon:'trig',
+        becomes:'Your child reaches university-ready mathematics with geometry, trigonometry, vectors, matrices and pre-calculus.',
+        builds:['Trigonometry','Vectors & Matrices','Pre-Calculus','Coordinate Geometry','Probability','SAT Preparation'],
+        learns:['Trigonometry','Vectors & matrices','Pre-calculus','University-ready thinking'],
+        real:'Everything needed for STEM degrees in engineering, data science and beyond, with strong SAT prep.' }
+    ]
+  }
+};
+
+const COURSE_LABELS = { robotics: 'Robotics', math: 'Mathematics' };
+
 function curriculumRobot(color, type) {
   var C = color;
   var icons = {
@@ -2736,7 +2780,14 @@ function curriculumRobot(color, type) {
     chip: '<rect x="43" y="72" width="14" height="14" rx="2.5" fill="none" stroke="'+C+'" stroke-width="2.2"/><text x="50" y="82.5" font-family="Arial" font-size="7.5" font-weight="800" fill="'+C+'" text-anchor="middle">AI</text>',
     arm: '<circle cx="44" cy="86" r="2.4" fill="'+C+'"/><path d="M44 86l4-7 8-2" fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="54" y="74" width="6" height="4" rx="1" fill="'+C+'"/>',
     face: '<rect x="42" y="71" width="16" height="16" rx="5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="47" cy="78" r="1.5" fill="'+C+'"/><circle cx="53" cy="78" r="1.5" fill="'+C+'"/><path d="M47 83q3 2 6 0" fill="none" stroke="'+C+'" stroke-width="1.8" stroke-linecap="round"/>',
-    wheel: '<circle cx="50" cy="79" r="7.5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="50" cy="79" r="2" fill="'+C+'"/><g stroke="'+C+'" stroke-width="1.8" stroke-linecap="round"><path d="M50 72v3.5M50 82.5v3.5M42.5 79h3.5M54 79h3.5"/></g>'
+    wheel: '<circle cx="50" cy="79" r="7.5" fill="none" stroke="'+C+'" stroke-width="2.2"/><circle cx="50" cy="79" r="2" fill="'+C+'"/><g stroke="'+C+'" stroke-width="1.8" stroke-linecap="round"><path d="M50 72v3.5M50 82.5v3.5M42.5 79h3.5M54 79h3.5"/></g>',
+    legs: '<g fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"><path d="M42 74h16M45 74v10M50 74v10M55 74v10"/></g>',
+    num: '<text x="50" y="83" font-family="Georgia,serif" font-size="12" font-weight="700" fill="'+C+'" text-anchor="middle">123</text>',
+    ops: '<g stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"><path d="M43 79h6M46 76v6"/><path d="M53 76l5 6M58 76l-5 6"/></g>',
+    percent: '<text x="50" y="84" font-family="Arial" font-size="15" font-weight="800" fill="'+C+'" text-anchor="middle">%</text>',
+    xvar: '<text x="50" y="84" font-family="Georgia,serif" font-style="italic" font-size="16" font-weight="700" fill="'+C+'" text-anchor="middle">x</text>',
+    graph: '<g fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"><path d="M43 86V71M43 86h15"/><path d="M45 83q5-12 12-3"/></g>',
+    trig: '<path d="M42 80q4-8 8 0t8 0" fill="none" stroke="'+C+'" stroke-width="2.2" stroke-linecap="round"/>'
   };
   return '<svg class="robot" viewBox="0 0 100 128" xmlns="http://www.w3.org/2000/svg">' +
     '<line x1="50" y1="16" x2="50" y2="8" stroke="'+C+'" stroke-width="3" stroke-linecap="round"/>' +
@@ -2757,109 +2808,126 @@ function curriculumRobot(color, type) {
   '</svg>';
 }
 
-function buildCurriculumHTML(course) {
-  var cd = CURRICULUM_DATA[course];
-  if (!cd) return '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:40px">No curriculum available yet.</body></html>';
-  var dataJson = JSON.stringify(cd);
-  var robotSrc = curriculumRobot.toString();
-  var bandKeys = Object.keys(cd);
-  var bandPills = bandKeys.map(function(k, i){ return '<button class="cbandbtn'+(i===0?' on':'')+'" data-b="'+k+'">'+cd[k].gradeLabel+'</button>'; }).join('');
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>BrightCHAMPS · What your child will build</title><style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}
-.cwrap{max-width:1060px;margin:0 auto;padding:44px 22px 66px;}
-.cbrand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:26px;}
-.cbrand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
-.cbrand .nm{font-size:18px;font-weight:700;}.cbrand .nm em{font-weight:400;font-style:normal;}
-.chero{text-align:center;margin-bottom:26px;}
-.chero .eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:800;color:#7453D7;margin-bottom:10px;}
-.chero h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;margin-bottom:16px;}
-.chero h1 em{font-style:normal;color:#7453D7;}
-.cbands{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
-.cbandbtn{font-size:13px;font-weight:700;padding:8px 16px;border-radius:22px;border:2px solid #ece9f6;background:#fff;color:#4a4460;cursor:pointer;transition:all .18s;}
-.cbandbtn:hover{border-color:#7453D7;color:#7453D7;}
-.cbandbtn.on{background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-color:transparent;}
-.chero .stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;font-size:14px;color:#6b6480;font-weight:600;}
-.chero .stats b{color:#241d3a;font-size:16px;}
-.ctabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:22px;}
-.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px 10px;border:2px solid #ece9f6;border-radius:16px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}
-.ctab:hover{border-color:var(--c);transform:translateY(-2px);}
-.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 8px 20px rgba(0,0,0,0.06);}
-.ctab-rob svg{width:46px;height:auto;display:block;}
-.ctab-lbl{text-align:center;font-size:11.5px;color:#4a4460;font-weight:600;line-height:1.2;}
-.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1px;}
-.cpanel{display:grid;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}
-.cpanel.anim{animation:cfade .35s ease;}
-@keyframes cfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}
-.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}
-@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
-.cp-eyebrow{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}
-.cpanel h2{font-size:29px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}
-.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}
-.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}
-.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}
-.cp-chips span{font-size:13px;font-weight:600;padding:7px 13px;border-radius:20px;}
-.cp-chips.builds span{background:var(--cl);color:var(--c);}
-.cp-chips.skills span{background:#f3f1fa;color:#5a5470;}
-.cp-real{margin-top:20px;padding:14px 16px;border-left:3px solid var(--c);background:#faf9ff;border-radius:0 10px 10px 0;font-size:14px;color:#4a4460;line-height:1.55;}
-.coutcome{margin-top:30px;text-align:center;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-radius:24px;padding:34px 30px;}
-.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}
-.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:700px;margin:0 auto;}
-.cfoot{text-align:center;margin-top:24px;font-size:12px;color:#a49fb5;}
-@media(max-width:720px){.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:28px;}.ctabs{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}}
-</style></head><body><div class="cwrap">
-<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>
-<div class="chero"><div class="eyebrow" id="ceyebrow"></div><h1>What your child will <em>build</em>.</h1><div class="cbands">${bandPills}</div><div class="stats" id="cstats"></div></div>
-<div class="ctabs" id="ctabs"></div>
-<div class="cpanel" id="cpanel"></div>
-<div class="coutcome"><h3 id="coutcome-title"></h3><p id="coutcome-text"></p></div>
-<div class="cfoot">Tap a grade band, then tap each module to explore what your child builds.</div>
-</div>
-<script>
-var DATA=${dataJson};
-${robotSrc}
-var bands=Object.keys(DATA);
-var activeBand=bands[0];
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function panelHTML(m){
-  return '<div class="cpanel-rob">'+curriculumRobot(m.color,m.icon)+'</div>'
-    +'<div class="cpanel-body">'
-    +'<div class="cp-eyebrow">Module '+m.n+' \u00b7 '+esc(m.tag)+'</div>'
-    +'<h2>'+esc(m.name)+'</h2>'
-    +'<p class="cp-becomes">'+esc(m.becomes)+'</p>'
-    +'<div class="cp-sec">They will build</div><div class="cp-chips builds">'+m.builds.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>'
-    +'<div class="cp-sec">Skills they gain</div><div class="cp-chips skills">'+m.learns.map(function(x){return '<span>'+esc(x)+'</span>';}).join('')+'</div>'
-    +'<div class="cp-real">'+esc(m.real)+'</div></div>';
-}
-function showModule(i){
-  var m=DATA[activeBand].modules[i];
-  var tabs=document.querySelectorAll('.ctab');
-  for(var t=0;t<tabs.length;t++){tabs[t].classList.toggle('on',parseInt(tabs[t].getAttribute('data-i'))===i);}
-  var panel=document.getElementById('cpanel');
-  panel.style.setProperty('--c',m.color);panel.style.setProperty('--cl',m.light);
-  panel.innerHTML=panelHTML(m);
-  panel.classList.remove('anim');void panel.offsetWidth;panel.classList.add('anim');
-}
-function renderBand(){
-  var b=DATA[activeBand];
-  document.getElementById('ceyebrow').textContent=b.title;
-  document.getElementById('cstats').innerHTML=b.stats.map(function(s){return '<span><b>'+esc(s[0])+'</b> '+esc(s[1])+'</span>';}).join('');
-  document.getElementById('coutcome-title').textContent=b.outcomeTitle;
-  document.getElementById('coutcome-text').textContent=b.outcome;
-  document.getElementById('ctabs').innerHTML=b.modules.map(function(m,i){return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'"><span class="ctab-rob">'+curriculumRobot(m.color,m.icon)+'</span><span class="ctab-lbl"><b>Module '+m.n+'</b>'+esc(m.name)+'</span></button>';}).join('');
-  var tabs=document.querySelectorAll('.ctab');
-  for(var t=0;t<tabs.length;t++){(function(el){el.addEventListener('click',function(){showModule(parseInt(el.getAttribute('data-i')));});})(tabs[t]);}
-  showModule(0);
-}
-var bb=document.querySelectorAll('.cbandbtn');
-for(var q=0;q<bb.length;q++){(function(el){el.addEventListener('click',function(){activeBand=el.getAttribute('data-b');var all=document.querySelectorAll('.cbandbtn');for(var z=0;z<all.length;z++){all[z].classList.toggle('on',all[z].getAttribute('data-b')===activeBand);}renderBand();window.scrollTo({top:0,behavior:'smooth'});});})(bb[q]);}
-renderBand();
-<\/script></body></html>`;
+function buildCurriculumHTML() {
+  var safe = function(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var courses = Object.keys(CURRICULUM_DATA);
+  var subjPills = courses.map(function(c, ci){
+    return '<button class="csubjbtn'+(ci===0?' on':'')+'" data-c="'+c+'">'+safe(COURSE_LABELS[c]||c)+'</button>';
+  }).join('');
+  var subjects = courses.map(function(c, ci){
+    var bands = CURRICULUM_DATA[c];
+    var keys = Object.keys(bands);
+    var bandPills = keys.length > 1 ? ('<div class="cbandbar">' + keys.map(function(k, bi){
+      return '<button class="cbandbtn'+(bi===0?' on':'')+'" data-b="'+k+'">'+safe(bands[k].gradeLabel)+'</button>';
+    }).join('') + '</div>') : '';
+    var bandSecs = keys.map(function(k, bi){
+      var data = bands[k];
+      var unit = data.unit || 'Module';
+      var buildsLabel = data.buildsLabel || 'They will build';
+      var tabs = data.modules.map(function(m, i){
+        return '<button class="ctab'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'">'+
+          '<span class="ctab-rob">'+curriculumRobot(m.color, m.icon)+'</span>'+
+          '<span class="ctab-lbl"><b>'+unit+' '+m.n+'</b>'+safe(m.name)+'</span></button>';
+      }).join('');
+      var panels = data.modules.map(function(m, i){
+        return '<div class="cpanel'+(i===0?' on':'')+'" data-i="'+i+'" style="--c:'+m.color+';--cl:'+m.light+'">'+
+          '<div class="cpanel-rob">'+curriculumRobot(m.color, m.icon)+'</div>'+
+          '<div class="cpanel-body">'+
+            '<div class="cp-eyebrow">'+unit+' '+m.n+' · '+safe(m.tag)+'</div>'+
+            '<h2>'+safe(m.name)+'</h2>'+
+            '<p class="cp-becomes">'+safe(m.becomes)+'</p>'+
+            '<div class="cp-sec">'+safe(buildsLabel)+'</div>'+
+            '<div class="cp-chips builds">'+m.builds.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div>'+
+            '<div class="cp-sec">Skills they gain</div>'+
+            '<div class="cp-chips skills">'+m.learns.map(function(x){return '<span>'+safe(x)+'</span>';}).join('')+'</div>'+
+            '<div class="cp-real">'+safe(m.real)+'</div>'+
+          '</div></div>';
+      }).join('');
+      var stats = data.stats.map(function(x){ return '<span><b>'+safe(x[0])+'</b> '+safe(x[1])+'</span>'; }).join('');
+      return '<div class="cband" data-b="'+k+'" style="display:'+(bi===0?'block':'none')+'">'+
+        '<div class="cband-stats">'+stats+'</div>'+
+        '<div class="ctabs">'+tabs+'</div>'+
+        '<div class="cpanels">'+panels+'</div>'+
+        '<div class="coutcome"><h3>'+safe(data.outcomeTitle||'A complete journey')+'</h3><p>'+safe(data.outcome)+'</p></div>'+
+      '</div>';
+    }).join('');
+    return '<div class="csubject" data-c="'+c+'" style="display:'+(ci===0?'block':'none')+'">'+bandPills+bandSecs+'</div>';
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'+
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">'+
+    '<title>BrightCHAMPS · What your child will build</title><style>'+
+    '*{margin:0;padding:0;box-sizing:border-box;}'+
+    "body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Arial,sans-serif;color:#241d3a;background:#faf9ff;"+
+      'background-image:radial-gradient(1100px 480px at 50% -12%, rgba(116,83,215,0.13), transparent);-webkit-font-smoothing:antialiased;line-height:1.5;}'+
+    '.cwrap{max-width:1060px;margin:0 auto;padding:44px 22px 66px;}'+
+    '.cbrand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;}'+
+    '.cbrand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}'+
+    '.cbrand .nm{font-size:18px;font-weight:700;}.cbrand .nm em{font-weight:400;font-style:normal;}'+
+    '.chero{text-align:center;margin-bottom:22px;}'+
+    '.chero .eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:800;color:#7453D7;margin-bottom:10px;}'+
+    '.chero h1{font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.08;}'+
+    '.chero h1 em{font-style:normal;color:#7453D7;}'+
+    '.csubjbar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}'+
+    '.csubjbtn{font-size:15px;font-weight:800;padding:11px 26px;border-radius:30px;border:2px solid #e4dff4;background:#fff;color:#6b6480;cursor:pointer;transition:all .18s;}'+
+    '.csubjbtn:hover{border-color:#7453D7;color:#7453D7;}'+
+    '.csubjbtn.on{background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-color:transparent;}'+
+    '.cbandbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:22px;}'+
+    '.cbandbtn{font-size:13px;font-weight:700;padding:8px 18px;border-radius:22px;border:2px solid #ece9f6;background:#fff;color:#6b6480;cursor:pointer;transition:all .18s;}'+
+    '.cbandbtn:hover{border-color:#7453D7;color:#7453D7;}'+
+    '.cbandbtn.on{background:#efe9fb;border-color:#7453D7;color:#4D3BC2;}'+
+    '.cband-stats{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:14px;color:#6b6480;font-weight:600;margin-bottom:22px;}'+
+    '.cband-stats b{color:#241d3a;font-size:16px;}'+
+    '.ctabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:22px;}'+
+    '.ctab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px 10px;border:2px solid #ece9f6;border-radius:16px;background:#fff;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}'+
+    '.ctab:hover{border-color:var(--c);transform:translateY(-2px);}'+
+    '.ctab.on{border-color:var(--c);background:var(--cl);box-shadow:0 8px 20px rgba(0,0,0,0.06);}'+
+    '.ctab-rob svg{width:46px;height:auto;display:block;}'+
+    '.ctab-lbl{text-align:center;font-size:11.5px;color:#4a4460;font-weight:600;line-height:1.2;}'+
+    '.ctab-lbl b{display:block;font-size:10px;color:var(--c);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1px;}'+
+    '.cpanel{display:none;grid-template-columns:180px 1fr;gap:30px;align-items:start;background:#fff;border:2px solid #ece9f6;border-radius:24px;padding:32px 34px;}'+
+    '.cpanel.on{display:grid;animation:cfade .35s ease;}'+
+    '@keyframes cfade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}'+
+    '.cpanel-rob{display:flex;justify-content:center;padding-top:6px;}'+
+    '.cpanel-rob svg{width:150px;height:auto;animation:cbob 3s ease-in-out infinite;}'+
+    '@keyframes cbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}'+
+    '.cp-eyebrow{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;color:var(--c);margin-bottom:6px;}'+
+    '.cpanel h2{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:10px;}'+
+    '.cp-becomes{font-size:16px;color:#4a4460;margin-bottom:6px;line-height:1.55;}'+
+    '.cp-sec{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;color:#a49fb5;margin:18px 0 10px;}'+
+    '.cp-chips{display:flex;flex-wrap:wrap;gap:8px;}'+
+    '.cp-chips span{font-size:13px;font-weight:600;padding:7px 13px;border-radius:20px;}'+
+    '.cp-chips.builds span{background:var(--cl);color:var(--c);}'+
+    '.cp-chips.skills span{background:#f3f1fa;color:#5a5470;}'+
+    '.cp-real{margin-top:20px;padding:14px 16px;border-left:3px solid var(--c);background:#faf9ff;border-radius:0 10px 10px 0;font-size:14px;color:#4a4460;line-height:1.55;}'+
+    '.coutcome{margin-top:32px;text-align:center;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;border-radius:24px;padding:34px 30px;}'+
+    '.coutcome h3{font-size:20px;font-weight:800;margin-bottom:10px;}'+
+    '.coutcome p{font-size:15px;line-height:1.6;opacity:0.96;max-width:700px;margin:0 auto;}'+
+    '.cfoot{text-align:center;margin-top:26px;font-size:12px;color:#a49fb5;}'+
+    '@media(max-width:720px){.cpanel{grid-template-columns:1fr;}.cpanel-rob svg{width:118px;}.chero h1{font-size:28px;}}'+
+    '</style></head><body><div class="cwrap">'+
+      '<div class="cbrand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>'+
+      '<div class="chero"><div class="eyebrow">Course Curriculum</div><h1>What your child will <em>build</em>.</h1></div>'+
+      '<div class="csubjbar">'+subjPills+'</div>'+
+      subjects+
+      '<div class="cfoot">Pick a subject and grade band, then tap each card to explore what your child learns.</div>'+
+    '</div>'+
+    '<' + 'script>'+
+    "document.querySelectorAll('.csubjbtn').forEach(function(p){p.addEventListener('click',function(){var c=p.dataset.c;"+
+    "document.querySelectorAll('.csubjbtn').forEach(function(x){x.classList.toggle('on',x.dataset.c===c);});"+
+    "document.querySelectorAll('.csubject').forEach(function(x){x.style.display=(x.dataset.c===c)?'block':'none';});"+
+    "window.scrollTo({top:0,behavior:'smooth'});});});"+
+    "document.querySelectorAll('.cbandbtn').forEach(function(p){p.addEventListener('click',function(){var subj=p.closest('.csubject');var b=p.dataset.b;"+
+    "subj.querySelectorAll('.cbandbtn').forEach(function(x){x.classList.toggle('on',x.dataset.b===b);});"+
+    "subj.querySelectorAll('.cband').forEach(function(x){x.style.display=(x.dataset.b===b)?'block':'none';});});});"+
+    "document.querySelectorAll('.ctab').forEach(function(t){t.addEventListener('click',function(){var band=t.closest('.cband');var i=t.dataset.i;"+
+    "band.querySelectorAll('.ctab').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});"+
+    "band.querySelectorAll('.cpanel').forEach(function(x){x.classList.toggle('on',x.dataset.i===i);});});});"+
+    '</' + 'script></body></html>';
 }
 
 function showCurriculum() {
-  const html = buildCurriculumHTML('robotics');
+  const html = buildCurriculumHTML();
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   window.open(url, '_blank');
