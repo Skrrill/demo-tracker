@@ -2448,7 +2448,6 @@ function renderPricingCard(plan, meta) {
     '<div class="pp2-top"><span class="pp2-sessions">' + plan.classes + ' sessions</span>' + saveVs + '</div>' +
     dur + kit +
     '<div class="pp2-money">' +
-      '<div class="pp2-lock"><span class="pp2-lockdot"></span> Tap to reveal price</div>' +
       '<div class="pp2-reveal">' +
         '<div class="pp2-pricewrap">' +
           '<div class="pp2-orig' + (disc > 0 ? ' show' : '') + '">' + (disc > 0 ? ppMoney(full) : '') + '</div>' +
@@ -2470,118 +2469,6 @@ function openPricingModal() {
 
 function closePricingModal() {
   document.getElementById('pricing-modal').classList.remove('active');
-}
-
-function buildParentPricingHTML() {
-  var plans = getVisiblePlans();
-  var meta = getPricingMeta();
-  var safe = function(x){ return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-  var money = function(n){ return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: (n % 1) ? 2 : 0 }); };
-  var selIdx = -1;
-  plans.forEach(function(p, i){ if (p.classes === ppSel) selIdx = i; });
-
-  var cards = plans.map(function(p, i){
-    var disc = (p.classes === ppSel) ? ppDisc : 0;
-    var full = p.price;
-    var shown = disc > 0 ? Math.round(full * (1 - disc / 100)) : full;
-    var save = full - shown;
-    var per = Math.round(shown / p.classes);
-    var mo = shown / meta.months;
-    var orig = disc > 0 ? '<div class="orig">' + money(full) + '</div>' : '';
-    var badge = disc > 0 ? '<div class="savebig">You save ' + money(save) + '  ·  ' + disc + '% off</div>' : '';
-    var kit = p.kitLabel ? '<div class="kit">Includes <strong>' + p.kitLabel + '</strong> robotics kit' + (p.kitLabel === '1' ? '' : 's') + '</div>' : '';
-    var dur = p.duration ? '<div class="dur">About ' + p.duration.display + ' at ' + meta.perWeek + '/week</div>' : '';
-    return '<div class="card' + (i === selIdx ? ' revealed' : '') + '" data-i="' + i + '">' +
-      '<div class="ct"><span class="sess">' + p.classes + ' sessions</span></div>' +
-      dur + kit +
-      '<div class="pricebox">' +
-        '<div class="lockrow"><span class="lockdot"></span> Tap to reveal price</div>' +
-        '<div class="pricereveal">' +
-          orig + '<div class="price">' + money(shown) + '</div>' + badge +
-          '<div class="per">' + money(per) + ' <span>per class</span></div>' +
-          '<div class="inst"><span>' + money(mo) + '</span> / mo for ' + meta.months + ' months</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  var flex = meta.format === 'oto' ? ' · flexible 1 to 5 sessions a week' : ' · 1 or 2 sessions a week';
-  var pay = '<div class="pms">' +
-    '<span class="pm visa">VISA</span><span class="pm mc"><i></i><i></i></span>' +
-    '<span class="pm">AMEX</span><span class="pm">PayPal</span><span class="pm">Klarna</span>' +
-    '<span class="pm">Afterpay</span><span class="pm">Apple Pay</span><span class="pm">Google Pay</span></div>';
-
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-    '<title>BrightCHAMPS · ' + safe(meta.courseLabel) + ' Pricing</title><style>' +
-    '*{margin:0;padding:0;box-sizing:border-box;}' +
-    'body{color:#e9e6f0;background-color:#15141c;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Arial,sans-serif;' +
-      'background-image:repeating-linear-gradient(180deg,transparent,transparent 31px,rgba(255,255,255,0.028) 32px);-webkit-font-smoothing:antialiased;line-height:1.5;}' +
-    '.wrap{max-width:1120px;margin:0 auto;padding:56px 24px 72px;}' +
-    '.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:40px;}' +
-    '.brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#4D3BC2,#7453D7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}' +
-    '.brand .nm{font-size:18px;font-weight:600;letter-spacing:-0.01em;color:#e9e6f0;}.brand .nm em{font-style:normal;font-weight:400;}' +
-    '.hero{text-align:center;margin-bottom:20px;}' +
-    '.eyebrow{font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#d4af6a;margin-bottom:14px;}' +
-    'h1{font-family:Georgia,"Times New Roman",serif;font-size:44px;font-weight:600;letter-spacing:-0.015em;line-height:1.1;margin-bottom:14px;color:#f3f0e8;}' +
-    'h1 em{font-style:italic;color:#b6a3e6;}' +
-    '.sub{font-size:16px;color:#9a95ab;}' +
-    '.revealhint{text-align:center;font-size:12px;letter-spacing:0.05em;color:#8b8698;margin:26px 0 20px;}' +
-    '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;}' +
-    '.card{position:relative;background:#1e1d28;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:28px 26px 24px;cursor:pointer;transition:border-color .25s,box-shadow .25s,transform .18s;}' +
-    '.card:hover{transform:translateY(-2px);border-color:rgba(212,175,106,0.45);}' +
-    '.card.revealed{border-color:#d4af6a;box-shadow:0 0 0 1px #d4af6a,0 14px 38px rgba(212,175,106,0.22);}' +
-    '.ct{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;}' +
-    '.sess{font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#b6a3e6;}' +
-    '.dur{font-size:13px;color:#8b8698;margin-bottom:6px;}' +
-    '.kit{font-size:13px;color:#cfcbd9;margin-bottom:2px;}.kit strong{color:#d4af6a;}' +
-    '.pricebox{position:relative;margin-top:16px;min-height:120px;}' +
-    '.pricereveal{filter:blur(9px);opacity:0.35;transition:filter .5s ease,opacity .5s ease;pointer-events:none;}' +
-    '.card.revealed .pricereveal{filter:none;opacity:1;}' +
-    '.lockrow{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#d4af6a;z-index:2;transition:opacity .3s;}' +
-    '.card.revealed .lockrow{opacity:0;}' +
-    '.lockdot{width:7px;height:7px;border-radius:50%;background:#d4af6a;box-shadow:0 0 0 4px rgba(212,175,106,0.2);}' +
-    '.orig{font-size:16px;color:#7d7890;text-decoration:line-through;margin-bottom:2px;}' +
-    '.price{font-family:Georgia,"Times New Roman",serif;font-size:50px;font-weight:600;line-height:1;letter-spacing:-0.02em;color:#f3f0e8;}' +
-    '.savebig{display:inline-block;margin-top:10px;font-size:12px;font-weight:800;color:#4a3714;background:linear-gradient(135deg,#f4d58a,#c9a86a);padding:5px 12px;border-radius:20px;}' +
-    '.per{font-size:14px;color:#9a95ab;margin-top:10px;}.per span{color:#6f6a80;}' +
-    '.inst{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;color:#8b8698;}' +
-    '.inst span{font-family:Georgia,serif;font-weight:600;color:#f3f0e8;font-size:18px;}' +
-    '.payline{margin-top:44px;text-align:center;}.payline .lead{font-size:13px;color:#9a95ab;margin-bottom:16px;}' +
-    '.pms{display:inline-flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;opacity:0.78;}' +
-    '.pm{font-size:13px;font-weight:800;color:#b9b6c4;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.02em;}' +
-    '.pm.visa{font-style:italic;}.pm.mc{display:inline-flex;gap:0;}' +
-    '.pm.mc i{width:15px;height:15px;border-radius:50%;display:block;background:#8f8b9c;}.pm.mc i:last-child{background:#c3bfce;margin-left:-7px;}' +
-    '.trust{margin-top:44px;padding-top:26px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;}' +
-    '.trust .row{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;}' +
-    '.trust .item{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#8b8698;}' +
-    '.trust p{font-size:12px;color:#6f6a80;margin-top:18px;}' +
-    '@media(max-width:640px){h1{font-size:34px;}.price{font-size:40px;}.wrap{padding:36px 16px;}}' +
-    '</style></head><body><div class="wrap">' +
-      '<div class="brand"><div class="logo">&#9733;</div><div class="nm">Bright<em>CHAMPS</em></div></div>' +
-      '<div class="hero"><div class="eyebrow">' + safe(meta.courseLabel) + ' &middot; ' + safe(meta.gradeRange) + '</div>' +
-        '<h1>Your <em>' + safe(meta.courseLabel) + '</em> plan,<br>mapped out.</h1>' +
-        '<div class="sub">' + safe(meta.formatLabel) + ' classes' + flex + '</div></div>' +
-      '<div class="revealhint">Tap a plan to reveal its price</div>' +
-      '<div class="grid">' + cards + '</div>' +
-      '<div class="payline"><div class="lead">Split it into easy monthly instalments. Pay however suits you.</div>' + pay + '</div>' +
-      '<div class="trust"><div class="row">' +
-        '<div class="item">STEM Accredited</div><div class="item">Harvard Business Impact</div><div class="item">Google &middot; Roblox Advisors</div>' +
-      '</div><p>All prices in USD.' + (meta.hasKits ? ' Robotics kits ship to your door.' : '') + '</p></div>' +
-    '</div>' +
-    '<' + 'script>' +
-    "document.querySelectorAll('.card').forEach(function(c){c.addEventListener('click',function(){" +
-    "document.querySelectorAll('.card').forEach(function(x){x.classList.remove('revealed');});" +
-    "c.classList.add('revealed');});});" +
-    '</' + 'script></body></html>';
-}
-
-function showParentPricing() {
-  const html = buildParentPricingHTML();
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
 }
 
 // ============ CURRICULUM EXPLAINER (show parents what the child builds) ============
