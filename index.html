@@ -1046,7 +1046,7 @@
       <span id="sync-status" class="sync-status"><span class="dot"></span><span id="sync-text">connecting</span></span>
       <span id="user-email" style="font-size:11px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;"></span>
       <input type="file" id="import-file" accept=".json" style="display:none">
-      <button class="btn btn-secondary" id="pricing-btn">💰 Pricing</button>
+      <button class="btn btn-secondary" id="pricing-btn">Pricing</button>
       <button class="btn btn-secondary" id="curriculum-btn">Curriculum</button>
       <button class="btn btn-secondary" id="templates-btn">Templates</button>
       <button class="btn btn-secondary" id="import-btn">Import</button>
@@ -1937,26 +1937,18 @@ function openDetail(id) {
     '</div></div>' +
     (d.generalNotes ? '<div class="detail-section"><h3>Notes</h3><div class="detail-grid"><div class="detail-item full"><div class="value">' +
       escapeHtml(d.generalNotes) + '</div></div></div></div>' : '') +
-    '<div class="detail-section"><h3>📤 Pre-demo Outreach</h3>' +
+    '<div class="detail-section"><h3>Before the class</h3>' +
       '<div class="action-grid">' +
-        '<button class="action-btn" data-act="pretty-email">✨ Pretty Email · Confirmation</button>' +
-        '<button class="action-btn" data-act="pretty-email-24h">✨ Pretty Email · 24h before</button>' +
-        '<button class="action-btn" data-act="pretty-email-30m">✨ Pretty Email · 30m before</button>' +
-        (d.phone ? '<button class="action-btn" data-act="wa24">💬 WhatsApp · 24h reminder</button>' : '') +
-        (d.phone ? '<button class="action-btn" data-act="wa30">💬 WhatsApp · 30m reminder</button>' : '') +
-        (d.phone ? '<button class="action-btn" data-act="sms">📲 Copy SMS for Aircall</button>' : '') +
-        '<button class="action-btn" data-act="email">📧 Quick Email (plain text)</button>' +
-        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="gcal">📅 Google Calendar</button>' : '') +
-        (d.demoDate && d.demoTime ? '<button class="action-btn" data-act="cal">📥 Download .ics (with alarms)</button>' : '') +
+        '<button class="action-btn" data-act="rem-email">Reminder email</button>' +
+        (d.phone ? '<button class="action-btn" data-act="rem-wa">Reminder WhatsApp</button>' : '') +
       '</div>' +
     '</div>' +
-    '<div class="detail-section"><h3>🎯 Post-demo Follow-up</h3>' +
-      (!d.pricingSnapshot ? '<p style="font-size:12px;color:var(--text-faint);margin:-12px 0 12px;">💡 Tip: Save a pricing quote first for these emails to include the offer.</p>' : '') +
+    '<div class="detail-section"><h3>After the demo</h3>' +
       '<div class="action-grid">' +
-        '<button class="action-btn" data-act="followup-2h">✨ Right After Demo (+2h)</button>' +
-        '<button class="action-btn" data-act="followup-24h">✨ Day 2 Check-in (+24h)</button>' +
-        '<button class="action-btn" data-act="followup-48h">✨ Final Push (+48h)</button>' +
+        '<button class="action-btn" data-act="ad-email">After-demo email</button>' +
+        (d.phone ? '<button class="action-btn" data-act="ad-wa">After-demo WhatsApp</button>' : '') +
       '</div>' +
+      '<p style="font-size:12px;color:var(--text-faint);margin:10px 0 0;">Uses your quoted price and the ' + escapeHtml(d.course || '') + ' curriculum link.</p>' +
     '</div>' +
     '<div class="modal-actions">' +
       '<button class="btn btn-ghost" id="detail-delete" data-id="' + escapeHtml(d.id) + '" style="color:var(--danger);">Delete</button>' +
@@ -1973,18 +1965,10 @@ function openDetail(id) {
   document.querySelectorAll('#detail-body .action-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const act = btn.dataset.act;
-      if (act === 'wa24') actionWhatsApp(d.id, '24h');
-      else if (act === 'wa30') actionWhatsApp(d.id, '30m');
-      else if (act === 'email') actionEmail(d.id);
-      else if (act === 'pretty-email') actionPrettyEmail(d.id, 'confirmation');
-      else if (act === 'pretty-email-24h') actionPrettyEmail(d.id, '24h');
-      else if (act === 'pretty-email-30m') actionPrettyEmail(d.id, '30m');
-      else if (act === 'followup-2h') actionPrettyEmail(d.id, 'followup-2h');
-      else if (act === 'followup-24h') actionPrettyEmail(d.id, 'followup-24h');
-      else if (act === 'followup-48h') actionPrettyEmail(d.id, 'followup-48h');
-      else if (act === 'sms') actionCopySMS(d.id);
-      else if (act === 'cal') actionAddToCalendar(d.id);
-      else if (act === 'gcal') actionAddToGoogleCalendar(d.id);
+      if (act === 'rem-email') actionReminderEmail(d.id);
+      else if (act === 'rem-wa') actionReminderWhatsApp(d.id);
+      else if (act === 'ad-email') actionAfterDemoEmail(d.id);
+      else if (act === 'ad-wa') actionAfterDemoWhatsApp(d.id);
     });
   });
 
@@ -3220,6 +3204,80 @@ function resetTemplates() {
 function cleanPhone(p) {
   if (!p) return '';
   return p.replace(/[^\d+]/g, '');
+}
+
+// ============ CURRICULUM LINKS (auto-fill into after-demo message) ============
+const CURRICULUM_LINKS = {
+  Math: 'https://drive.google.com/drive/folders/1f9SfoD-4Ii7DttrALLbQHiFwfrPpVWE1?usp=drive_link',
+  Robotics: 'https://drive.google.com/drive/folders/1l7SAh6tzbDlKUpnIxoG2ATvVSqStb1SP?usp=drive_link'
+  // add other subjects here as their links come in
+};
+
+function demoWhen(d) {
+  if (!d.demoDate) return '';
+  var datePart;
+  try {
+    var dt = new Date(d.demoDate + 'T' + (d.demoTime || '00:00'));
+    datePart = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  } catch (e) { datePart = d.demoDate; }
+  var timePart = '';
+  if (d.demoTime) {
+    try { timePart = new Date('1970-01-01T' + d.demoTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }
+    catch (e) { timePart = d.demoTime; }
+  }
+  return datePart + (timePart ? ' at ' + timePart : '');
+}
+function openGmailCompose(subject, body) {
+  window.open('https://mail.google.com/mail/?view=cm&fs=1&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body), '_blank');
+}
+function openWa(phone, msg) {
+  var ph = cleanPhone(phone).replace(/^\+/, '');
+  window.open('https://wa.me/' + ph + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function actionReminderEmail(id) {
+  var d = demos.find(function(x){ return x.id === id; }); if (!d) return;
+  var child = d.childName || 'your child';
+  var course = d.course || 'trial';
+  var lines = ['Hi ' + (d.parentName || 'there') + ',', '',
+    'Quick reminder that ' + child + "'s " + course + ' trial class is scheduled for ' + (demoWhen(d) || 'soon') + '.'];
+  if (d.classLink) lines.push('', 'Join link: ' + d.classLink);
+  lines.push('', 'Please have ' + child + ' ready a few minutes early. See you then.', '', 'Best,', 'Rituraj', 'BrightCHAMPS');
+  openGmailCompose('Reminder: ' + child + "'s " + course + ' class', lines.join('\n'));
+}
+function actionReminderWhatsApp(id) {
+  var d = demos.find(function(x){ return x.id === id; }); if (!d) return;
+  if (!d.phone) { alert('No phone number saved for this demo.'); return; }
+  var child = d.childName || 'your child';
+  var msg = 'Hi ' + (d.parentName || '') + ', reminder: ' + child + "'s " + (d.course || 'trial') + ' class is on ' + (demoWhen(d) || 'soon') + '.';
+  if (d.classLink) msg += ' Join: ' + d.classLink;
+  msg += ' See you then!';
+  openWa(d.phone, msg);
+}
+function actionAfterDemoEmail(id) {
+  var d = demos.find(function(x){ return x.id === id; }); if (!d) return;
+  var child = d.childName || 'your child';
+  var course = d.course || '';
+  var link = CURRICULUM_LINKS[d.course] || '';
+  var price = d.priceQuoted || '';
+  var lines = ['Hi ' + (d.parentName || 'there') + ',', '',
+    'Thank you for joining ' + child + "'s " + course + ' session today. ' + child + ' did really well.'];
+  if (link) lines.push('', 'Full curriculum: ' + link);
+  if (price) lines.push('', 'The plan we discussed: ' + price);
+  lines.push('', "Happy to answer any questions whenever you're ready.", '', 'Best,', 'Rituraj', 'BrightCHAMPS');
+  openGmailCompose(child + "'s " + course + ' plan and curriculum', lines.join('\n'));
+}
+function actionAfterDemoWhatsApp(id) {
+  var d = demos.find(function(x){ return x.id === id; }); if (!d) return;
+  if (!d.phone) { alert('No phone number saved for this demo.'); return; }
+  var child = d.childName || 'your child';
+  var link = CURRICULUM_LINKS[d.course] || '';
+  var price = d.priceQuoted || '';
+  var msg = 'Hi ' + (d.parentName || '') + ', thanks for joining ' + child + "'s " + (d.course || '') + ' session today!';
+  if (link) msg += ' Curriculum: ' + link;
+  if (price) msg += ' Plan we discussed: ' + price + '.';
+  msg += ' Let me know if any questions.';
+  openWa(d.phone, msg);
 }
 
 function actionWhatsApp(demoId, kind) {
